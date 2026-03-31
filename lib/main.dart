@@ -15,15 +15,15 @@ class MmmCVApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'mmmCV - Make Me My CV',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-        // appBarTheme: const AppBarTheme(
-        //   backgroundColor: Color.fromARGB(255, 9, 70, 120),
-        //   foregroundColor: Colors.white,
-        // ),
-      ),
+      // title: 'mmmCV - Make Me My CV',
+      // theme: ThemeData(
+      //   primarySwatch: Colors.blue,
+      //   useMaterial3: true,
+      //   appBarTheme: const AppBarTheme(
+      //     backgroundColor: Color.fromARGB(255, 9, 70, 120),
+      //     foregroundColor: Colors.white,
+      //   ),
+      // ),
       home: const CvFormPage(),
     );
   }
@@ -56,8 +56,11 @@ class _CvFormPageState extends State<CvFormPage> {
   // Section management
   final _sectionNameController = TextEditingController();
   String _selectedSectionType = 'education';
-  List<CvSection> _sections =
-      <CvSection>[]; // Explicitly initialize as mutable list
+  List<CvSection> _sections = <CvSection>[];
+
+  // Add main section to sections list
+  final CvSection _mainSection =
+      MainSection(sectionName: 'Personal Information');
 
   bool _isLoading = false;
   List<UserData> _userDataList = [];
@@ -215,6 +218,101 @@ class _CvFormPageState extends State<CvFormPage> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Main Section
+            _mainSection.build(context),
+
+            // Custom Sections List
+            if (_sections.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              ..._sections.map((section) => section.build(context)).toList(),
+            ],
+
+            // Add Section Board
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Add a section:',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Add Section Form
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedSectionType,
+                            decoration: const InputDecoration(
+                              labelText: 'Section Type',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.category),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'education',
+                                child: Text('Education'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'experience',
+                                child: Text('Experience'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedSectionType = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          flex: 3,
+                          child: TextFormField(
+                            controller: _sectionNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.label),
+                              hintText: 'Enter a section name...',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          onPressed: _addSection,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Section'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _addSection() {
     if (_sectionNameController.text.trim().isEmpty) {
       _showErrorSnackBar('Please enter a custom name for section');
@@ -257,565 +355,5 @@ class _CvFormPageState extends State<CvFormPage> {
       print('❌ ERROR: Failed to add section: $e');
       _showErrorSnackBar('Failed to add section: $e');
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('mmmCV - Make Me My CV'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Main Section (Personal Information)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Fill out the form to create your CV',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 10,
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _firstNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'First Name *',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your first name';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _middleNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Middle Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _lastNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Last Name *',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your last name';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _noteController,
-                        decoration: const InputDecoration(
-                          labelText: 'Note',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.note),
-                        ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 10,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: _emailController,
-                              decoration: const InputDecoration(
-                                labelText: 'Email *',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.email),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _phoneController,
-                              decoration: const InputDecoration(
-                                labelText: 'Phone',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.phone),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _addressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Address',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.home),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 10,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _zipCodeController,
-                              decoration: const InputDecoration(
-                                labelText: 'Zip Code',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.mail),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _cityController,
-                              decoration: const InputDecoration(
-                                labelText: 'City',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.location_city),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _countryController,
-                              decoration: const InputDecoration(
-                                labelText: 'Country',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.flag),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 10,
-                        children: [
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _website1Controller,
-                              decoration: const InputDecoration(
-                                labelText: 'Website 1',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.language),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _url1Controller,
-                              decoration: const InputDecoration(
-                                labelText: 'URL 1',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.link),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _website2Controller,
-                              decoration: const InputDecoration(
-                                labelText: 'Website 2',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.language),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200,
-                            child: TextFormField(
-                              controller: _url2Controller,
-                              decoration: const InputDecoration(
-                                labelText: 'URL 2',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.link),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Custom Sections List
-                      if (_sections.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        const SizedBox(height: 8),
-                        ..._sections.asMap().entries.map((entry) {
-                          int index = entry.key;
-                          CvSection section = entry.value;
-                          return Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        section.type == 'education'
-                                            ? Icons.school
-                                            : Icons.work,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          section.displayName,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (section is EducationSection) ...[
-                                    const SizedBox(height: 16),
-                                    // Subsections
-                                    if (section.items.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      ...section.items
-                                          .asMap()
-                                          .entries
-                                          .map((entry) {
-                                        int itemIndex = entry.key;
-                                        Map<String, String> item = entry.value;
-                                        return Card(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      '${section.subsectionName} ${itemIndex + 1}',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.grey[600],
-                                                      ),
-                                                    ),
-                                                    const Spacer(),
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                          Icons.delete,
-                                                          color: Colors.red),
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          final newItems = List<
-                                                                  Map<String,
-                                                                      String>>.from(
-                                                              section.items);
-                                                          newItems.removeAt(
-                                                              itemIndex);
-                                                          section.items =
-                                                              newItems;
-
-                                                          // Auto-delete section if no subsections left
-                                                          if (section
-                                                              .items.isEmpty) {
-                                                            final newSections =
-                                                                List<CvSection>.from(
-                                                                    _sections);
-                                                            newSections
-                                                                .removeAt(
-                                                                    index);
-                                                            _sections =
-                                                                newSections;
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                TextFormField(
-                                                  initialValue:
-                                                      item['degree'] ?? '',
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Degree',
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      final newItems = List<
-                                                              Map<String,
-                                                                  String>>.from(
-                                                          section.items);
-                                                      newItems[itemIndex]
-                                                              ['degree'] =
-                                                          value.trim();
-                                                      section.items = newItems;
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ],
-                                    const SizedBox(height: 8),
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        setState(() {
-                                          final newItems =
-                                              List<Map<String, String>>.from(
-                                                  section.items);
-                                          newItems.add({'degree': ''});
-                                          section.items = newItems;
-                                        });
-                                      },
-                                      icon: const Icon(Icons.add),
-                                      label: const Text('Add'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                  if (section is ExperienceSection) ...[
-                                    const SizedBox(height: 16),
-                                    // Subsections
-                                    if (section.items.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      ...section.items
-                                          .asMap()
-                                          .entries
-                                          .map((entry) {
-                                        int itemIndex = entry.key;
-                                        Map<String, String> item = entry.value;
-                                        return Card(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      '${section.subsectionName} ${itemIndex + 1}',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.grey[600],
-                                                      ),
-                                                    ),
-                                                    const Spacer(),
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                          Icons.delete,
-                                                          color: Colors.red),
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          final newItems = List<
-                                                                  Map<String,
-                                                                      String>>.from(
-                                                              section.items);
-                                                          newItems.removeAt(
-                                                              itemIndex);
-                                                          section.items =
-                                                              newItems;
-
-                                                          // Auto-delete section if no subsections left
-                                                          if (section
-                                                              .items.isEmpty) {
-                                                            final newSections =
-                                                                List<CvSection>.from(
-                                                                    _sections);
-                                                            newSections
-                                                                .removeAt(
-                                                                    index);
-                                                            _sections =
-                                                                newSections;
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                TextFormField(
-                                                  initialValue:
-                                                      item['job'] ?? '',
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    labelText: 'Job',
-                                                    border:
-                                                        OutlineInputBorder(),
-                                                  ),
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      final newItems = List<
-                                                              Map<String,
-                                                                  String>>.from(
-                                                          section.items);
-                                                      newItems[itemIndex]
-                                                              ['job'] =
-                                                          value.trim();
-                                                      section.items = newItems;
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ],
-                                    const SizedBox(height: 8),
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        setState(() {
-                                          final newItems =
-                                              List<Map<String, String>>.from(
-                                                  section.items);
-                                          newItems.add({'job': ''});
-                                          section.items = newItems;
-                                        });
-                                      },
-                                      icon: const Icon(Icons.add),
-                                      label: const Text('Add'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ],
-
-                      // Add Section Board
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Add a section:',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Add Section Form
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: DropdownButtonFormField<String>(
-                                      value: _selectedSectionType,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Section Type',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.category),
-                                      ),
-                                      items: const [
-                                        DropdownMenuItem(
-                                          value: 'education',
-                                          child: Text('Education'),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'experience',
-                                          child: Text('Experience'),
-                                        ),
-                                      ],
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _selectedSectionType = value!;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    flex: 3,
-                                    child: TextFormField(
-                                      controller: _sectionNameController,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Name',
-                                        border: OutlineInputBorder(),
-                                        prefixIcon: Icon(Icons.label),
-                                        hintText: 'Enter a section name...',
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: _addSection,
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Add Section'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
