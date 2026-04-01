@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'models/user_data.dart';
+import 'package:flutter/material.dart' as material;
 import 'models/cv_section.dart';
+import 'models/user_data.dart';
 import 'services/csv_service.dart';
 import 'services/rtf_service.dart';
 
@@ -15,15 +15,11 @@ class MmmCVApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // title: 'mmmCV - Make Me My CV',
-      // theme: ThemeData(
-      //   primarySwatch: Colors.blue,
-      //   useMaterial3: true,
-      //   appBarTheme: const AppBarTheme(
-      //     backgroundColor: Color.fromARGB(255, 9, 70, 120),
-      //     foregroundColor: Colors.white,
-      //   ),
-      // ),
+      title: 'mmmCV - Make Me My CV',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
       home: const CvFormPage(),
     );
   }
@@ -38,29 +34,10 @@ class CvFormPage extends StatefulWidget {
 
 class _CvFormPageState extends State<CvFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _middleNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _noteController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _zipCodeController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _countryController = TextEditingController();
-  final _website1Controller = TextEditingController();
-  final _url1Controller = TextEditingController();
-  final _website2Controller = TextEditingController();
-  final _url2Controller = TextEditingController();
-
-  // Section management
-  final _sectionNameController = TextEditingController();
   String _selectedSectionType = 'education';
   List<CvSection> _sections = <CvSection>[];
 
-  // Add main section to sections list
-  final CvSection _mainSection =
-      MainSection(sectionName: 'Personal Information');
+  late CvSection _mainSection;
 
   bool _isLoading = false;
   List<UserData> _userDataList = [];
@@ -69,25 +46,14 @@ class _CvFormPageState extends State<CvFormPage> {
   void initState() {
     super.initState();
     _loadUserData();
+    _mainSection = MainSection(
+      sectionName: 'Personal Information',
+    );
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _middleNameController.dispose();
-    _lastNameController.dispose();
-    _noteController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    _zipCodeController.dispose();
-    _cityController.dispose();
-    _countryController.dispose();
-    _website1Controller.dispose();
-    _url1Controller.dispose();
-    _website2Controller.dispose();
-    _url2Controller.dispose();
-    _sectionNameController.dispose();
+    _mainSection.allControllers.forEach((controller) => controller.dispose());
     super.dispose();
   }
 
@@ -98,28 +64,15 @@ class _CvFormPageState extends State<CvFormPage> {
         _userDataList = userDataList;
         _sections = []; // Initialize sections list properly
         print('🧪 Loaded ${userDataList.length} user entries');
-
-        // If data exists, populate form fields
-        if (userDataList.isNotEmpty) {
-          final userData = userDataList.first;
-          _firstNameController.text = userData.firstName;
-          _middleNameController.text = userData.middleName ?? '';
-          _lastNameController.text = userData.lastName;
-          _noteController.text = userData.summary ?? '';
-          _emailController.text = userData.email ?? '';
-          _phoneController.text = userData.phone ?? '';
-          _addressController.text = userData.address ?? '';
-          _zipCodeController.text = userData.zipCode ?? '';
-          _cityController.text = userData.city ?? '';
-          _countryController.text = userData.country ?? '';
-          _website1Controller.text = userData.website1 ?? '';
-          _url1Controller.text = userData.url1 ?? '';
-          _website2Controller.text = userData.website2 ?? '';
-          _url2Controller.text = userData.url2 ?? '';
-        }
       });
+
+      // If data exists, populate form fields
+      if (userDataList.isNotEmpty) {
+        // TODO: Implement data population by extracting controllers from UI elements
+        print('🧪 User data loaded: ${userDataList.first.firstName}');
+      }
     } catch (e) {
-      _showErrorSnackBar('Failed to load user data: $e');
+      print('Error loading user data: $e');
     }
   }
 
@@ -134,58 +87,35 @@ class _CvFormPageState extends State<CvFormPage> {
 
     try {
       // Create user data object
+      // TODO: Extract data from UI elements instead of controllers
       final userData = UserData(
-        firstName: _firstNameController.text.trim(),
-        middleName: _middleNameController.text.trim().isEmpty
-            ? null
-            : _middleNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        summary: _noteController.text.trim().isEmpty
-            ? null
-            : _noteController.text.trim(),
-        email: _emailController.text.trim().isEmpty
-            ? null
-            : _emailController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
-        address: _addressController.text.trim().isEmpty
-            ? null
-            : _addressController.text.trim(),
-        zipCode: _zipCodeController.text.trim().isEmpty
-            ? null
-            : _zipCodeController.text.trim(),
-        city: _cityController.text.trim().isEmpty
-            ? null
-            : _cityController.text.trim(),
-        country: _countryController.text.trim().isEmpty
-            ? null
-            : _countryController.text.trim(),
-        website1: _website1Controller.text.trim().isEmpty
-            ? null
-            : _website1Controller.text.trim(),
-        url1: _url1Controller.text.trim().isEmpty
-            ? null
-            : _url1Controller.text.trim(),
-        website2: _website2Controller.text.trim().isEmpty
-            ? null
-            : _website2Controller.text.trim(),
-        url2: _url2Controller.text.trim().isEmpty
-            ? null
-            : _url2Controller.text.trim(),
+        firstName: 'TODO', // Extract from UI
+        middleName: null,
+        lastName: 'TODO', // Extract from UI
+        summary: null,
+        email: null,
+        phone: null,
+        address: null,
+        zipCode: null,
+        city: null,
+        country: null,
+        website1: null,
+        url1: null,
+        website2: null,
+        url2: null,
       );
 
       // Save to CSV
       await CsvService.saveUserData(userData);
 
       // Generate RTF
-      final rtfFile = await RtfService.createRtfFile(userData);
+      final rtfString = await RtfService.generateRtf(_sections);
 
       // Reload user data list
       await _loadUserData();
 
       if (mounted) {
-        _showSuccessSnackBar('CV saved successfully! File: ${rtfFile.path}');
+        _showSuccessSnackBar('CV saved successfully!');
       }
     } catch (e) {
       if (mounted) {
@@ -221,6 +151,9 @@ class _CvFormPageState extends State<CvFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('mmmCV - Make Me My CV'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -244,8 +177,10 @@ class _CvFormPageState extends State<CvFormPage> {
                   children: [
                     const Text(
                       'Add a section:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
 
@@ -278,11 +213,9 @@ class _CvFormPageState extends State<CvFormPage> {
                             },
                           ),
                         ),
-                        const SizedBox(width: 16),
                         Expanded(
                           flex: 3,
                           child: TextFormField(
-                            controller: _sectionNameController,
                             decoration: const InputDecoration(
                               labelText: 'Name',
                               border: OutlineInputBorder(),
@@ -291,14 +224,21 @@ class _CvFormPageState extends State<CvFormPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        ElevatedButton.icon(
-                          onPressed: _addSection,
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Section'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
+                        Expanded(
+                          flex: 1,
+                          child: material.ElevatedButton(
+                            onPressed: _addSection,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.add),
+                                Text('Add Section'),
+                              ],
+                            ),
+                            style: material.ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                            ),
                           ),
                         ),
                       ],
@@ -314,46 +254,13 @@ class _CvFormPageState extends State<CvFormPage> {
   }
 
   void _addSection() {
-    if (_sectionNameController.text.trim().isEmpty) {
-      _showErrorSnackBar('Please enter a custom name for section');
-      return;
-    }
-
-    try {
-      print('🧪 Creating section of type: $_selectedSectionType');
-      print('🧪 Section name: "${_sectionNameController.text.trim()}"');
-
-      final newSection = SectionTypes.createSection(
-        _selectedSectionType,
-        _sectionNameController.text.trim(),
-      );
-
-      // Auto-create first subsection
-      if (newSection is EducationSection) {
-        final newItems = List<Map<String, String>>.from(newSection.items);
-        newItems.add({'degree': ''});
-        newSection.items = newItems;
-      } else if (newSection is ExperienceSection) {
-        final newItems = List<Map<String, String>>.from(newSection.items);
-        newItems.add({'job': ''});
-        newSection.items = newItems;
-      }
-
-      setState(() {
-        final newSections = List<CvSection>.from(_sections);
-        newSections.add(newSection);
-        _sections = newSections;
-        print(
-            '🧪 Added section: ${newSection.displayName} (Type: ${newSection.type})');
-        print('🧪 Total sections: ${_sections.length}');
-      });
-
-      // Clear form
-      _sectionNameController.clear();
-      _selectedSectionType = 'education';
-    } catch (e) {
-      print('❌ ERROR: Failed to add section: $e');
-      _showErrorSnackBar('Failed to add section: $e');
-    }
+    // TODO: Implement section addition by extracting name from UI element
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Section addition not implemented yet'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
   }
 }

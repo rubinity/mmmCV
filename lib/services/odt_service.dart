@@ -56,15 +56,7 @@ class OdtService {
       // Parse existing content.xml
       String contentXml = utf8.decode(contentFile.content as List<int>);
       print('📝 Original template content:');
-      print(contentXml.substring(0, 500)); // Show first 500 chars
-
-      // Debug: Show what we're looking for
-      print('🔍 Looking for: </text:p>');
-      print('🔍 Content length: ${contentXml.length}');
-
-      // Debug: Show first 1000 chars to see structure
-      print('🔍 First 1000 chars:');
-      print(contentXml.substring(0, 1000));
+      print(contentXml.substring(0, 300)); // Show first 300 chars
 
       // Generate user data
       String contactLine = _formatContactLine(userData);
@@ -77,43 +69,20 @@ class OdtService {
       print('  Websites: $websiteLine');
       print('  Summary: $summary');
 
-      // Find where to insert our data - look for office:text tag instead
-      String newContent = "";
-      int insertPoint = contentXml.indexOf('<office:text>');
-      print('🔍 Looking for <office:text> tag');
-      print('🔍 Search result: insertPoint = $insertPoint');
-
-      if (insertPoint == -1) {
-        print('🔍 Alternative search - looking for <office:text/>');
-        insertPoint = contentXml.indexOf('<office:text/>');
-        print('🔍 Alternative search result: $insertPoint');
-      }
-
-      if (insertPoint == -1) {
-        print('🔍 Final fallback - looking for <office:body>');
-        insertPoint = contentXml.indexOf('<office:body>');
-        print('🔍 Fallback search result: $insertPoint');
-      }
-
+      // Find where to insert our data - look for the first empty paragraph after name
+      int insertPoint = contentXml.indexOf('</text:p>');
       if (insertPoint != -1) {
-        // Find the end of the opening tag
-        int tagEnd = contentXml.indexOf('>', insertPoint);
-        if (tagEnd != -1) {
-          insertPoint = tagEnd + 1;
-          print('🔍 Inserting after tag at position: $insertPoint');
-        }
-
-        String beforeInsert = contentXml.substring(0, insertPoint);
-        String afterInsert = contentXml.substring(insertPoint);
+        // Insert our data after the first paragraph (which should be the name)
+        String beforeInsert = contentXml.substring(0, insertPoint + 9);
+        String afterInsert = contentXml.substring(insertPoint + 9);
 
         // Create new content with our data
-        newContent = '''$beforeInsert
-            <text:p text:style-name="name">${userData.fullName}</text:p>
-            <text:p text:style-name="Standard"/>
+        String newContent = '''$beforeInsert
             <text:p text:style-name="Standard">$contactLine</text:p>
             <text:p text:style-name="Standard">$websiteLine</text:p>
             <text:p text:style-name="Standard"/>
             <text:p text:style-name="Standard">$summary</text:p>
+            <text:p text:style-name="Standard">Additional Information</text:p>
 $afterInsert''';
 
         contentXml = newContent;
