@@ -6,6 +6,8 @@ enum FieldType {
   phone,
   multiline,
   url,
+  dropdown,
+  button,
 }
 
 class FieldDefinition {
@@ -16,6 +18,10 @@ class FieldDefinition {
   final String? placeholder;
   final int? width;
   final Widget? child;
+  final List<DropdownMenuItem<String>>? dropdownItems;
+  final VoidCallback? onPressed;
+  final String? buttonText;
+  final IconData? buttonIcon;
 
   FieldDefinition({
     required this.label,
@@ -25,6 +31,10 @@ class FieldDefinition {
     this.placeholder,
     this.width,
     this.child,
+    this.dropdownItems,
+    this.onPressed,
+    this.buttonText,
+    this.buttonIcon,
   });
 
   Widget build(BuildContext context) {
@@ -93,6 +103,40 @@ class FieldDefinition {
             keyboardType: TextInputType.url,
           ),
         );
+      case FieldType.dropdown:
+        return Expanded(
+          flex: 1,
+          child: DropdownButtonFormField<String>(
+            value: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.category),
+            ),
+            items: dropdownItems,
+            onChanged: (value) {
+              // This needs to be handled by the parent widget
+            },
+          ),
+        );
+      case FieldType.button:
+        return Expanded(
+          flex: 1,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (buttonIcon != null) Icon(buttonIcon),
+                if (buttonText != null) Text(buttonText!),
+              ],
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        );
       default:
         return Expanded(
           child: TextFormField(
@@ -112,26 +156,85 @@ class FieldDefinition {
 class FieldGroup {
   final String title;
   final List<FieldDefinition> fields;
+  final VoidCallback? onAddEntry;
+  final VoidCallback? onRemoveEntry;
 
   FieldGroup({
     required this.title,
     required this.fields,
+    this.onAddEntry,
+    this.onRemoveEntry,
   });
 
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4.0),
-      child: Wrap(
-        spacing: 4.0,
-        runSpacing: 4.0,
-        children: fields
-            .map((field) => SizedBox(
-                  width: (field.width ?? 200).toDouble(),
-                  child: field.build(context),
-                ))
-            .toList(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title is hidden for internal use only
+          const SizedBox(height: 4.0),
+          Wrap(
+            spacing: 4.0,
+            runSpacing: 4.0,
+            children: fields
+                .map((field) => SizedBox(
+                      width: (field.width ?? 200).toDouble(),
+                      child: field.build(context),
+                    ))
+                .toList(),
+          ),
+          // Show add/remove buttons if callbacks are provided
+          if (onAddEntry != null || onRemoveEntry != null)
+            Column(
+              children: [
+                const SizedBox(height: 8.0),
+                Row(
+                  children: [
+                    if (onAddEntry != null)
+                      ElevatedButton(
+                        onPressed: onAddEntry,
+                        child: const Text('Add Entry'),
+                      ),
+                    const SizedBox(width: 8.0),
+                    if (onRemoveEntry != null)
+                      ElevatedButton(
+                        onPressed: onRemoveEntry,
+                        child: const Text('Remove Entry'),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+        ],
       ),
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'fields': fields
+          .map((field) => {
+                'label': field.label,
+                'type': field.type.name,
+                'initialValue': field.initialValue,
+                'placeholder': field.placeholder,
+                'width': field.width,
+                'child': field.child?.toString(),
+              })
+          .toList(),
+    };
+  }
+
+  List<TextEditingController> get allControllers {
+    final controllers = <TextEditingController>[];
+    for (final field in fields) {
+      if (field.controller != null) {
+        controllers.add(field.controller!);
+      }
+    }
+    return controllers;
   }
 }
 
@@ -187,11 +290,7 @@ class Subsection {
   List<TextEditingController> get allControllers {
     final controllers = <TextEditingController>[];
     for (final group in fieldGroups) {
-      for (final field in group.fields) {
-        if (field.controller != null) {
-          controllers.add(field.controller!);
-        }
-      }
+      controllers.addAll(group.allControllers);
     }
     return controllers;
   }
@@ -243,10 +342,14 @@ class MainSection extends CvSection {
               FieldGroup(
                 title: 'Online',
                 fields: [
-                  FieldDefinition(label: 'Website 1', type: FieldType.text, width: 150),
-                  FieldDefinition(label: 'URL 1', type: FieldType.url, width: 250),
-                  FieldDefinition(label: 'Website 2', type: FieldType.text, width: 150),
-                  FieldDefinition(label: 'URL 2', type: FieldType.url, width: 250),
+                  FieldDefinition(
+                      label: 'Website 1', type: FieldType.text, width: 150),
+                  FieldDefinition(
+                      label: 'URL 1', type: FieldType.url, width: 250),
+                  FieldDefinition(
+                      label: 'Website 2', type: FieldType.text, width: 150),
+                  FieldDefinition(
+                      label: 'URL 2', type: FieldType.url, width: 250),
                 ],
               ),
               FieldGroup(

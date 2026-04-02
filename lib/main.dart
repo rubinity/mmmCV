@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
 import 'models/cv_section.dart';
+import 'models/section_board.dart';
+import 'models/custom_section.dart' as custom_section;
+import 'models/education_subsection.dart';
 import 'models/user_data.dart';
 import 'services/csv_service.dart';
 import 'services/rtf_service.dart';
@@ -35,10 +38,8 @@ class CvFormPage extends StatefulWidget {
 class _CvFormPageState extends State<CvFormPage> {
   final _formKey = GlobalKey<FormState>();
   String _selectedSectionType = 'education';
-  List<CvSection> _sections = <CvSection>[];
-
-  late CvSection _mainSection;
-
+  final MainSection _mainSection = MainSection(sectionName: 'Main Information');
+  List<custom_section.CustomSection> _sections = [];
   bool _isLoading = false;
   List<UserData> _userDataList = [];
 
@@ -46,9 +47,6 @@ class _CvFormPageState extends State<CvFormPage> {
   void initState() {
     super.initState();
     _loadUserData();
-    _mainSection = MainSection(
-      sectionName: 'Personal Information',
-    );
   }
 
   @override
@@ -151,9 +149,6 @@ class _CvFormPageState extends State<CvFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: const Text('mmmCV - Make Me My CV'),
-      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -162,13 +157,17 @@ class _CvFormPageState extends State<CvFormPage> {
             // Main Section
             _mainSection.build(context),
 
-            // Custom Sections List
+            // Custom Sections Board
             if (_sections.isNotEmpty) ...[
               const SizedBox(height: 16),
-              ..._sections.map((section) => section.build(context)).toList(),
+              SectionBoard(
+                sections: _sections,
+                onAddSection: _addSection,
+                onRemoveSection: _removeSection,
+              ).build(context),
             ],
 
-            // Add Section Board
+            // Add Section Group
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -184,65 +183,42 @@ class _CvFormPageState extends State<CvFormPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Add Section Form
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: DropdownButtonFormField<String>(
-                            value: _selectedSectionType,
-                            decoration: const InputDecoration(
-                              labelText: 'Section Type',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.category),
+                    // Add Section FieldGroup
+                    FieldGroup(
+                      title: '', // Hidden title for internal use only
+                      fields: [
+                        FieldDefinition(
+                          label: 'Section Type',
+                          type: FieldType.dropdown,
+                          // width: 200,
+                          initialValue: _selectedSectionType,
+                          dropdownItems: const [
+                            DropdownMenuItem(
+                              value: 'education',
+                              child: Text('Education'),
                             ),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'education',
-                                child: Text('Education'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'experience',
-                                child: Text('Experience'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedSectionType = value!;
-                              });
-                            },
-                          ),
+                            DropdownMenuItem(
+                              value: 'experience',
+                              child: Text('Experience'),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          flex: 3,
-                          child: TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Name',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.label),
-                              hintText: 'Enter a section name...',
-                            ),
-                          ),
+                        FieldDefinition(
+                          label: 'Name',
+                          type: FieldType.text,
+                          width: 300,
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: material.ElevatedButton(
-                            onPressed: _addSection,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.add),
-                                Text('Add Section'),
-                              ],
-                            ),
-                            style: material.ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
+                        FieldDefinition(
+                          label: '',
+                          type: FieldType.button,
+                          width: 150,
+                          buttonText: 'Add Section',
+                          buttonIcon: Icons.add,
+                          onPressed: _addSection,
                         ),
                       ],
-                    ),
+                      onAddEntry: null, // Button is now a field
+                    ).build(context),
                   ],
                 ),
               ),
@@ -254,10 +230,79 @@ class _CvFormPageState extends State<CvFormPage> {
   }
 
   void _addSection() {
-    // TODO: Implement section addition by extracting name from UI element
+    // Get the section name from the form
+    final sectionName = 'New Section'; // TODO: Get from form field
+
+    // Create appropriate section based on type
+    custom_section.CustomSection newSection;
+    switch (_selectedSectionType) {
+      case 'education':
+        newSection = custom_section.CustomSection(
+          sectionName: sectionName,
+          subsections: [
+            EducationSubsection(name: '${sectionName} Entry 1'),
+          ],
+        );
+        break;
+      case 'experience':
+        newSection = custom_section.CustomSection(
+          sectionName: sectionName,
+          subsections: [
+            custom_section.Subsection(
+              name: '${sectionName} Entry 1',
+              fieldGroups: [
+                FieldGroup(
+                  title: 'Position',
+                  fields: [
+                    FieldDefinition(
+                      label: 'Job Title',
+                      type: FieldType.text,
+                      width: 300,
+                    ),
+                    FieldDefinition(
+                      label: 'Company',
+                      type: FieldType.text,
+                      width: 300,
+                    ),
+                  ],
+                ),
+                FieldGroup(
+                  title: 'Duration',
+                  fields: [
+                    FieldDefinition(
+                      label: 'Start Date',
+                      type: FieldType.text,
+                      width: 150,
+                    ),
+                    FieldDefinition(
+                      label: 'End Date',
+                      type: FieldType.text,
+                      width: 150,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+        break;
+      default:
+        newSection = custom_section.CustomSection(
+          sectionName: sectionName,
+        );
+        break;
+    }
+
+    setState(() {
+      _sections.add(newSection);
+    });
+  }
+
+  void _removeSection() {
+    // TODO: Implement section removal
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Section addition not implemented yet'),
+        content: Text('Section removal not implemented yet'),
         backgroundColor: Colors.orange,
       ),
     );
