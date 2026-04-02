@@ -36,16 +36,6 @@ class EducationSubsection extends custom_section.Subsection {
                   type: FieldType.text,
                   width: 100,
                 ),
-                FieldDefinition(
-                  label: 'Start',
-                  type: FieldType.text,
-                  width: 100,
-                ),
-                FieldDefinition(
-                  label: 'End',
-                  type: FieldType.text,
-                  width: 100,
-                ),
               ],
             ),
             FieldGroup(
@@ -60,4 +50,47 @@ class EducationSubsection extends custom_section.Subsection {
             ),
           ],
         );
+
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          );
+  }
+}
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'fieldGroups': fieldGroups
+          .map((group) => {
+                'title': group.title,
+                'fields': group.fields
+                    .map((field) => {
+                          'label': field.label,
+                          'type': field.type.name,
+                          'initialValue': field.initialValue,
+                          'placeholder': field.placeholder,
+                          'width': field.width,
+                          'child': field.child?.toString(),
+                        })
+                    .toList(),
+              })
+          .toList(),
+    };
+  }
+
+  List<TextEditingController> get allControllers {
+    final controllers = <TextEditingController>[];
+    for (final group in fieldGroups) {
+      for (final field in group.fields) {
+        if (field.controller != null) {
+          controllers.add(field.controller!);
+        }
+      }
+    }
+    return controllers;
+  }
 }

@@ -18,16 +18,7 @@ class Subsection {
         children: [
           // Title is hidden for internal use only
           const SizedBox(height: 4.0),
-          Wrap(
-            spacing: 4.0,
-            runSpacing: 4.0,
-            children: fieldGroups
-                .map((group) => SizedBox(
-                      width: 200,
-                      child: group.build(context),
-                    ))
-                .toList(),
-          ),
+          ...fieldGroups.map((group) => group.build(context)).toList(),
         ],
       ),
     );
