@@ -39,44 +39,6 @@ class FieldDefinition {
 
   Widget build(BuildContext context) {
     switch (type) {
-      case FieldType.text:
-        return Expanded(
-          child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: placeholder,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        );
-      case FieldType.email:
-        return Expanded(
-          child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: placeholder,
-              border: const OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.emailAddress,
-          ),
-        );
-      case FieldType.phone:
-        return Expanded(
-          child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: placeholder,
-              border: const OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.phone,
-          ),
-        );
       case FieldType.multiline:
         return Expanded(
           child: TextFormField(
@@ -88,19 +50,6 @@ class FieldDefinition {
               border: const OutlineInputBorder(),
             ),
             maxLines: 3,
-          ),
-        );
-      case FieldType.url:
-        return Expanded(
-          child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: placeholder,
-              border: const OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.url,
           ),
         );
       case FieldType.dropdown:
@@ -137,7 +86,7 @@ class FieldDefinition {
             ),
           ),
         );
-      default:
+      default: // text, email, phone, url
         return Expanded(
           child: TextFormField(
             controller: controller,
@@ -147,6 +96,12 @@ class FieldDefinition {
               hintText: placeholder,
               border: const OutlineInputBorder(),
             ),
+            keyboardType: switch (type) {
+              FieldType.email => TextInputType.emailAddress,
+              FieldType.phone => TextInputType.phone,
+              FieldType.url => TextInputType.url,
+              _ => TextInputType.text,
+            },
           ),
         );
     }
