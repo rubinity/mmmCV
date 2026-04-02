@@ -151,9 +151,9 @@ class _CvFormPageState extends State<CvFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('mmmCV - Make Me My CV'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('mmmCV - Make Me My CV'),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

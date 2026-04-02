@@ -30,59 +30,79 @@ class FieldDefinition {
   Widget build(BuildContext context) {
     switch (type) {
       case FieldType.text:
-        return TextFormField(
-          controller: controller,
-          initialValue: initialValue ?? controller?.text,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.label),
-            hintText: placeholder,
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
           ),
         );
       case FieldType.email:
-        return TextFormField(
-          controller: controller,
-          initialValue: initialValue ?? controller?.text,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.email),
-            hintText: placeholder,
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.emailAddress,
           ),
         );
       case FieldType.phone:
-        return TextFormField(
-          controller: controller,
-          initialValue: initialValue ?? controller?.text,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone),
-            hintText: placeholder,
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.phone,
           ),
         );
       case FieldType.multiline:
-        return TextFormField(
-          controller: controller,
-          initialValue: initialValue ?? controller?.text,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.description),
-            hintText: placeholder,
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
+            maxLines: 3,
           ),
         );
       case FieldType.url:
-        return TextFormField(
-          controller: controller,
-          initialValue: initialValue ?? controller?.text,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.link),
-            hintText: placeholder,
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.url,
+          ),
+        );
+      default:
+        return Expanded(
+          child: TextFormField(
+            controller: controller,
+            initialValue: initialValue,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: placeholder,
+              border: const OutlineInputBorder(),
+            ),
           ),
         );
     }
@@ -99,20 +119,17 @@ class FieldGroup {
   });
 
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ...fields.map((field) => field.build(context)).toList(),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Wrap(
+        spacing: 4.0,
+        runSpacing: 4.0,
+        children: fields
+            .map((field) => SizedBox(
+                  width: (field.width ?? 200).toDouble(),
+                  child: field.build(context),
+                ))
+            .toList(),
       ),
     );
   }
@@ -127,8 +144,23 @@ class Subsection {
     required this.fieldGroups,
   });
 
-  List<FieldDefinition> get fields {
-    return fieldGroups.expand((group) => group.fields).toList();
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            ...fieldGroups.map((group) => group.build(context)).toList(),
+          ],
+        ),
+      ),
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -152,23 +184,16 @@ class Subsection {
     };
   }
 
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ...fieldGroups.map((group) => group.build(context)).toList(),
-          ],
-        ),
-      ),
-    );
+  List<TextEditingController> get allControllers {
+    final controllers = <TextEditingController>[];
+    for (final group in fieldGroups) {
+      for (final field in group.fields) {
+        if (field.controller != null) {
+          controllers.add(field.controller!);
+        }
+      }
+    }
+    return controllers;
   }
 }
 
@@ -187,9 +212,54 @@ abstract class CvSection {
 }
 
 class MainSection extends CvSection {
+  List<Subsection> subsections = [];
+
   MainSection({
     required String sectionName,
-  }) : super(sectionName: sectionName, type: 'main');
+    List<Subsection>? subsections,
+  }) : super(sectionName: sectionName, type: 'main') {
+    this.subsections = subsections ??
+        [
+          Subsection(
+            name: 'Personal Information',
+            fieldGroups: [
+              FieldGroup(
+                title: 'Name',
+                fields: [
+                  FieldDefinition(label: 'First Name', type: FieldType.text),
+                  FieldDefinition(label: 'Middle Name', type: FieldType.text),
+                  FieldDefinition(label: 'Last Name', type: FieldType.text),
+                ],
+              ),
+              FieldGroup(
+                title: 'Contact',
+                fields: [
+                  FieldDefinition(label: 'Email', type: FieldType.email),
+                  FieldDefinition(label: 'Phone', type: FieldType.phone),
+                  FieldDefinition(label: 'City', type: FieldType.text),
+                  FieldDefinition(label: 'Country', type: FieldType.text),
+                ],
+              ),
+              FieldGroup(
+                title: 'Online',
+                fields: [
+                  FieldDefinition(label: 'Website 1', type: FieldType.text, width: 150),
+                  FieldDefinition(label: 'URL 1', type: FieldType.url, width: 250),
+                  FieldDefinition(label: 'Website 2', type: FieldType.text, width: 150),
+                  FieldDefinition(label: 'URL 2', type: FieldType.url, width: 250),
+                ],
+              ),
+              FieldGroup(
+                title: 'Summary',
+                fields: [
+                  FieldDefinition(
+                      label: 'Summary', type: FieldType.multiline, width: 812),
+                ],
+              ),
+            ],
+          ),
+        ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,67 +274,9 @@ class MainSection extends CvSection {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            FieldGroup(
-              title: 'Personal Information',
-              fields: [
-                FieldDefinition(
-                  label: 'First Name',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'Middle Name',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'Last Name',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'Note',
-                  type: FieldType.multiline,
-                ),
-                FieldDefinition(
-                  label: 'Email',
-                  type: FieldType.email,
-                ),
-                FieldDefinition(
-                  label: 'Phone',
-                  type: FieldType.phone,
-                ),
-                FieldDefinition(
-                  label: 'Address',
-                  type: FieldType.multiline,
-                ),
-                FieldDefinition(
-                  label: 'Zip Code',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'City',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'Country',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'Website 1',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'URL 1',
-                  type: FieldType.url,
-                ),
-                FieldDefinition(
-                  label: 'Website 2',
-                  type: FieldType.text,
-                ),
-                FieldDefinition(
-                  label: 'URL 2',
-                  type: FieldType.url,
-                ),
-              ],
-            ).build(context),
+            ...subsections
+                .map((subsection) => subsection.build(context))
+                .toList(),
           ],
         ),
       ),
@@ -281,17 +293,23 @@ class MainSection extends CvSection {
 
   @override
   List<TextEditingController> get allControllers {
-    return [];
+    final controllers = <TextEditingController>[];
+    for (final subsection in subsections) {
+      controllers.addAll(subsection.allControllers);
+    }
+    return controllers;
   }
 }
 
 class EducationSection extends CvSection {
-  final List<Subsection> subsections = [];
+  List<Subsection> subsections = [];
 
   EducationSection({
     required String sectionName,
     List<Subsection>? subsections,
-  }) : super(sectionName: sectionName, type: 'education');
+  }) : super(sectionName: sectionName, type: 'education') {
+    this.subsections = subsections ?? [];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -306,7 +324,6 @@ class EducationSection extends CvSection {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Education subsections will be rendered here
             ...subsections
                 .map((subsection) => subsection.build(context))
                 .toList(),
@@ -326,16 +343,24 @@ class EducationSection extends CvSection {
   }
 
   @override
-  List<TextEditingController> get allControllers => [];
+  List<TextEditingController> get allControllers {
+    final controllers = <TextEditingController>[];
+    for (final subsection in subsections) {
+      controllers.addAll(subsection.allControllers);
+    }
+    return controllers;
+  }
 }
 
 class ExperienceSection extends CvSection {
-  final List<Subsection> subsections = [];
+  List<Subsection> subsections = [];
 
   ExperienceSection({
     required String sectionName,
     List<Subsection>? subsections,
-  }) : super(sectionName: sectionName, type: 'experience');
+  }) : super(sectionName: sectionName, type: 'experience') {
+    this.subsections = subsections ?? [];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +375,6 @@ class ExperienceSection extends CvSection {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            // Experience subsections will be rendered here
             ...subsections
                 .map((subsection) => subsection.build(context))
                 .toList(),
@@ -370,5 +394,11 @@ class ExperienceSection extends CvSection {
   }
 
   @override
-  List<TextEditingController> get allControllers => [];
+  List<TextEditingController> get allControllers {
+    final controllers = <TextEditingController>[];
+    for (final subsection in subsections) {
+      controllers.addAll(subsection.allControllers);
+    }
+    return controllers;
+  }
 }
