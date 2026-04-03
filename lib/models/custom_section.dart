@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'cv_section.dart';
 import 'education_subsection.dart';
+import 'experience_subsection.dart';
 
 class Subsection {
   final String name;
@@ -84,84 +85,90 @@ class CustomSection extends StatefulWidget {
 }
 
 class _CustomSectionState extends State<CustomSection> {
-  late List<Subsection> subsections;
+  Map<int, Subsection> subsections = {};
 
   @override
   void initState() {
     super.initState();
     // Initialize with provided subsections or create default
-    subsections = widget.initialSubsections ??
-        [
-          Subsection(
-            name: '${widget.sectionName} Entry 1',
-            fieldGroups: [],
-          ),
-        ];
+    if (widget.initialSubsections != null) {
+      for (int i = 0; i < widget.initialSubsections!.length; i++) {
+        subsections[i] = widget.initialSubsections![i];
+      }
+    } else {
+      subsections[0] = Subsection(
+        name: '${widget.sectionName} Entry 1',
+        fieldGroups: [],
+      );
+    }
   }
 
   void addSubsection() {
     setState(() {
       Subsection newSubsection;
+      final newKey = subsections.length;
 
       switch (widget.subsectionType) {
         case SubsectionType.education:
           newSubsection = EducationSubsection(
-            name: '${widget.sectionName} Entry ${subsections.length + 1}',
+            name: '${widget.sectionName} Entry ${newKey + 1}',
           );
           break;
         case SubsectionType.experience:
-          newSubsection = Subsection(
-            name: '${widget.sectionName} Entry ${subsections.length + 1}',
-            fieldGroups: [
-              FieldGroup(
-                title: 'Position',
-                fields: [
-                  FieldDefinition(
-                    label: 'Job Title',
-                    type: FieldType.text,
-                    width: 300,
-                  ),
-                  FieldDefinition(
-                    label: 'Company',
-                    type: FieldType.text,
-                    width: 300,
-                  ),
-                ],
-              ),
-              FieldGroup(
-                title: 'Duration',
-                fields: [
-                  FieldDefinition(
-                    label: 'Start Date',
-                    type: FieldType.text,
-                    width: 150,
-                  ),
-                  FieldDefinition(
-                    label: 'End Date',
-                    type: FieldType.text,
-                    width: 150,
-                  ),
-                ],
-              ),
-            ],
+          newSubsection = ExperienceSubsection(
+            name: '${widget.sectionName} Entry ${newKey + 1}',
           );
           break;
         default:
           newSubsection = Subsection(
-            name: '${widget.sectionName} Entry ${subsections.length + 1}',
+            name: '${widget.sectionName} Entry ${newKey + 1}',
             fieldGroups: [],
           );
           break;
       }
 
-      subsections.add(newSubsection);
+      subsections[newKey] = newSubsection;
     });
   }
 
-  void removeSubsection(int index) {
+  void removeSubsection(int key) {
     setState(() {
-      subsections.removeAt(index);
+      subsections.remove(key);
+      // Renumber remaining keys
+      final newMap = <int, Subsection>{};
+      int newKey = 0;
+      final sortedEntries = subsections.entries.toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
+      for (final entry in sortedEntries) {
+        newMap[newKey++] = entry.value;
+      }
+      subsections = newMap;
     });
+  }
+
+  void moveUp(int key) {
+    if (key > 0) {
+      setState(() {
+        // Simple swap - just swap values directly
+        final current = subsections[key]!;
+        final above = subsections[key - 1]!;
+        subsections[key] = above;
+        subsections[key - 1] = current;
+      });
+    }
+  }
+
+  void moveDown(int key) {
+    final maxKey = subsections.length - 1;
+    if (key < maxKey) {
+      setState(() {
+        // Simple swap - just swap values directly
+        final current = subsections[key]!;
+        final below = subsections[key + 1]!;
+        subsections[key] = below;
+        subsections[key + 1] = current;
+      });
+    }
   }
 
   @override
@@ -189,23 +196,59 @@ class _CustomSectionState extends State<CustomSection> {
               ],
             ),
             const SizedBox(height: 16),
-            ...subsections
-                .map((subsection) => subsection.build(context))
-                .toList(),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () => addSubsection(),
-                  child: const Text('Add Entry'),
-                ),
-                const SizedBox(width: 8),
-                if (subsections.length > 1)
-                  ElevatedButton(
-                    onPressed: () => removeSubsection(subsections.length - 1),
-                    child: const Text('Remove Last Entry'),
+            ...subsections.entries.map((entry) {
+              final position =
+                  entry.key; // This is the current position after reordering
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (position > 0)
+                          IconButton(
+                            icon: const Icon(Icons.keyboard_arrow_up, size: 16),
+                            onPressed: () => moveUp(position),
+                            constraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                          )
+                        else
+                          const SizedBox(width: 32), // Spacer for first entry
+                        if (position < subsections.length - 1)
+                          IconButton(
+                            icon:
+                                const Icon(Icons.keyboard_arrow_down, size: 16),
+                            onPressed: () => moveDown(position),
+                            constraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                          )
+                        else
+                          const SizedBox(width: 32), // Spacer for last entry
+                        if (subsections.length > 1)
+                          IconButton(
+                            icon: const Icon(Icons.delete, size: 16),
+                            onPressed: () => removeSubsection(position),
+                            constraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                          ),
+                      ],
+                    ),
                   ),
-              ],
+                  const SizedBox(height: 8),
+                  entry.value.build(context),
+                  const SizedBox(height: 16),
+                ],
+              );
+            }).toList(),
+            ElevatedButton(
+              onPressed: () => addSubsection(),
+              child: const Text('Add Entry'),
             ),
           ],
         ),
@@ -216,13 +259,18 @@ class _CustomSectionState extends State<CustomSection> {
   Map<String, dynamic> toMap() {
     return {
       'sectionName': widget.sectionName,
-      'subsections': subsections.map((s) => s.toMap()).toList(),
+      'subsections': subsections.entries
+          .map((entry) => {
+                'key': entry.key,
+                'subsection': entry.value.toMap(),
+              })
+          .toList(),
     };
   }
 
   List<TextEditingController> get allControllers {
     final controllers = <TextEditingController>[];
-    for (final subsection in subsections) {
+    for (final subsection in subsections.values) {
       controllers.addAll(subsection.allControllers);
     }
     return controllers;

@@ -22,6 +22,7 @@ class FieldDefinition {
   final VoidCallback? onPressed;
   final String? buttonText;
   final IconData? buttonIcon;
+  final Function(String?)? onChanged;
 
   FieldDefinition({
     required this.label,
@@ -35,6 +36,7 @@ class FieldDefinition {
     this.onPressed,
     this.buttonText,
     this.buttonIcon,
+    this.onChanged,
   });
 
   Widget build(BuildContext context) {
@@ -63,9 +65,7 @@ class FieldDefinition {
               prefixIcon: const Icon(Icons.category),
             ),
             items: dropdownItems,
-            onChanged: (value) {
-              // This needs to be handled by the parent widget
-            },
+            onChanged: onChanged,
           ),
         );
       case FieldType.button:
