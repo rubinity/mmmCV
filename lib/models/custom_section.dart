@@ -69,12 +69,14 @@ class CustomSection extends StatefulWidget {
   final String sectionName;
   final List<Subsection>? initialSubsections;
   final SubsectionType subsectionType;
+  final VoidCallback? onRemoveSection;
 
   const CustomSection({
     super.key,
     required this.sectionName,
     this.initialSubsections,
     required this.subsectionType,
+    this.onRemoveSection,
   });
 
   @override
@@ -170,9 +172,21 @@ class _CustomSectionState extends State<CustomSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.sectionName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // Section title and remove button in same line
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.sectionName,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                if (widget.onRemoveSection != null)
+                  ElevatedButton(
+                    onPressed: widget.onRemoveSection,
+                    child: const Text('Remove Section'),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             ...subsections

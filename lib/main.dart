@@ -160,10 +160,16 @@ class _CvFormPageState extends State<CvFormPage> {
             // Custom Sections Board
             if (_sections.isNotEmpty) ...[
               const SizedBox(height: 16),
-              SectionBoard(
-                sections: _sections,
-                onSectionRemoved: _removeSection,
-              ),
+              ..._sections.asMap().entries.map((entry) {
+                final index = entry.key;
+                final section = entry.value;
+                return custom_section.CustomSection(
+                  sectionName: section.sectionName,
+                  initialSubsections: section.initialSubsections,
+                  subsectionType: section.subsectionType,
+                  onRemoveSection: () => _removeSection(index),
+                );
+              }).toList(),
             ],
 
             // Add Section Group
@@ -173,15 +179,6 @@ class _CvFormPageState extends State<CvFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Add a section:',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
                     // Add Section FieldGroup
                     FieldGroup(
                       title: '', // Hidden title for internal use only
@@ -203,20 +200,18 @@ class _CvFormPageState extends State<CvFormPage> {
                           ],
                         ),
                         FieldDefinition(
-                          label: 'Name',
+                          label: 'Section Name',
                           type: FieldType.text,
-                          width: 300,
+                          width: 200,
                         ),
                         FieldDefinition(
                           label: '',
                           type: FieldType.button,
-                          width: 150,
                           buttonText: 'Add Section',
                           buttonIcon: Icons.add,
-                          onPressed: _addSection,
+                          onPressed: () => _addSection(),
                         ),
                       ],
-                      onAddEntry: null, // Button is now a field
                     ).build(context),
                   ],
                 ),
@@ -230,7 +225,18 @@ class _CvFormPageState extends State<CvFormPage> {
 
   void _addSection() {
     // Get the section name from the form
-    final sectionName = 'New Section'; // TODO: Get from form field
+    String sectionName;
+    switch (_selectedSectionType) {
+      case 'education':
+        sectionName = 'Education';
+        break;
+      case 'experience':
+        sectionName = 'Experience';
+        break;
+      default:
+        sectionName = 'Custom Section';
+        break;
+    }
 
     // Create appropriate section based on type
     custom_section.CustomSection newSection;

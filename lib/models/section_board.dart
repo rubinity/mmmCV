@@ -23,22 +23,8 @@ class SectionBoard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section content is now self-contained
+                  // Section content is now self-contained with remove button
                   section,
-                  const SizedBox(height: 8.0),
-                  // Section management buttons
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // Remove this section
-                          final index = sections.indexOf(section);
-                          onSectionRemoved?.call(index);
-                        },
-                        child: const Text('Remove Section'),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
