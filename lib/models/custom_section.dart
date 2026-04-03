@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'cv_section.dart';
+import 'education_subsection.dart';
 
 class Subsection {
   final String name;
@@ -58,38 +59,107 @@ class Subsection {
   }
 }
 
-class CustomSection extends CvSection {
-  List<Subsection> subsections = [];
+enum SubsectionType {
+  generic,
+  education,
+  experience,
+}
 
-  CustomSection({
-    required String sectionName,
-    List<Subsection>? subsections,
-  }) : super(sectionName: sectionName, type: 'custom') {
-    // Automatically create first subsection if none provided
-    this.subsections = subsections ??
+class CustomSection extends StatefulWidget {
+  final String sectionName;
+  final List<Subsection>? initialSubsections;
+  final SubsectionType subsectionType;
+
+  const CustomSection({
+    super.key,
+    required this.sectionName,
+    this.initialSubsections,
+    required this.subsectionType,
+  });
+
+  @override
+  State<CustomSection> createState() => _CustomSectionState();
+}
+
+class _CustomSectionState extends State<CustomSection> {
+  late List<Subsection> subsections;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with provided subsections or create default
+    subsections = widget.initialSubsections ??
         [
           Subsection(
-            name: '${sectionName} Entry 1',
+            name: '${widget.sectionName} Entry 1',
             fieldGroups: [],
           ),
         ];
   }
 
   void addSubsection() {
-    final newSubsection = Subsection(
-      name: '${sectionName} Entry ${subsections.length + 1}',
-      fieldGroups: [],
-    );
-    subsections.add(newSubsection);
+    setState(() {
+      Subsection newSubsection;
+
+      switch (widget.subsectionType) {
+        case SubsectionType.education:
+          newSubsection = EducationSubsection(
+            name: '${widget.sectionName} Entry ${subsections.length + 1}',
+          );
+          break;
+        case SubsectionType.experience:
+          newSubsection = Subsection(
+            name: '${widget.sectionName} Entry ${subsections.length + 1}',
+            fieldGroups: [
+              FieldGroup(
+                title: 'Position',
+                fields: [
+                  FieldDefinition(
+                    label: 'Job Title',
+                    type: FieldType.text,
+                    width: 300,
+                  ),
+                  FieldDefinition(
+                    label: 'Company',
+                    type: FieldType.text,
+                    width: 300,
+                  ),
+                ],
+              ),
+              FieldGroup(
+                title: 'Duration',
+                fields: [
+                  FieldDefinition(
+                    label: 'Start Date',
+                    type: FieldType.text,
+                    width: 150,
+                  ),
+                  FieldDefinition(
+                    label: 'End Date',
+                    type: FieldType.text,
+                    width: 150,
+                  ),
+                ],
+              ),
+            ],
+          );
+          break;
+        default:
+          newSubsection = Subsection(
+            name: '${widget.sectionName} Entry ${subsections.length + 1}',
+            fieldGroups: [],
+          );
+          break;
+      }
+
+      subsections.add(newSubsection);
+    });
   }
 
   void removeSubsection(int index) {
-    subsections.removeAt(index);
-    // When no subsections remain, notify parent to remove this section
-  }
-
-  void removeSection() {
-    // This section should be removed by parent (SectionBoard)
+    setState(() {
+      subsections.removeAt(index);
+    });
   }
 
   @override
@@ -101,7 +171,7 @@ class CustomSection extends CvSection {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              sectionName,
+              widget.sectionName,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -129,16 +199,13 @@ class CustomSection extends CvSection {
     );
   }
 
-  @override
   Map<String, dynamic> toMap() {
     return {
-      'sectionName': sectionName,
-      'type': type,
+      'sectionName': widget.sectionName,
       'subsections': subsections.map((s) => s.toMap()).toList(),
     };
   }
 
-  @override
   List<TextEditingController> get allControllers {
     final controllers = <TextEditingController>[];
     for (final subsection in subsections) {

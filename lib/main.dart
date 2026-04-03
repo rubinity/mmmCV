@@ -162,9 +162,8 @@ class _CvFormPageState extends State<CvFormPage> {
               const SizedBox(height: 16),
               SectionBoard(
                 sections: _sections,
-                onAddSection: _addSection,
-                onRemoveSection: _removeSection,
-              ).build(context),
+                onSectionRemoved: _removeSection,
+              ),
             ],
 
             // Add Section Group
@@ -239,15 +238,16 @@ class _CvFormPageState extends State<CvFormPage> {
       case 'education':
         newSection = custom_section.CustomSection(
           sectionName: sectionName,
-          subsections: [
+          initialSubsections: [
             EducationSubsection(name: '${sectionName} Entry 1'),
           ],
+          subsectionType: custom_section.SubsectionType.education,
         );
         break;
       case 'experience':
         newSection = custom_section.CustomSection(
           sectionName: sectionName,
-          subsections: [
+          initialSubsections: [
             custom_section.Subsection(
               name: '${sectionName} Entry 1',
               fieldGroups: [
@@ -284,11 +284,13 @@ class _CvFormPageState extends State<CvFormPage> {
               ],
             ),
           ],
+          subsectionType: custom_section.SubsectionType.experience,
         );
         break;
       default:
         newSection = custom_section.CustomSection(
           sectionName: sectionName,
+          subsectionType: custom_section.SubsectionType.generic,
         );
         break;
     }
@@ -298,14 +300,11 @@ class _CvFormPageState extends State<CvFormPage> {
     });
   }
 
-  void _removeSection() {
-    // TODO: Implement section removal
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Section removal not implemented yet'),
-        backgroundColor: Colors.orange,
-      ),
-    );
-    return;
+  void _removeSection(int index) {
+    setState(() {
+      if (index >= 0 && index < _sections.length) {
+        _sections.removeAt(index);
+      }
+    });
   }
 }
