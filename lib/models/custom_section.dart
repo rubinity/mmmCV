@@ -71,6 +71,7 @@ class CustomSection extends StatefulWidget {
   final List<Subsection>? initialSubsections;
   final SubsectionType subsectionType;
   final VoidCallback? onRemoveSection;
+  final GlobalKey<CustomSectionState>? sectionKey;
 
   const CustomSection({
     super.key,
@@ -78,13 +79,14 @@ class CustomSection extends StatefulWidget {
     this.initialSubsections,
     required this.subsectionType,
     this.onRemoveSection,
+    this.sectionKey,
   });
 
   @override
-  State<CustomSection> createState() => _CustomSectionState();
+  State<CustomSection> createState() => CustomSectionState();
 }
 
-class _CustomSectionState extends State<CustomSection> {
+class CustomSectionState extends State<CustomSection> {
   Map<int, Subsection> subsections = {};
 
   @override
@@ -104,7 +106,7 @@ class _CustomSectionState extends State<CustomSection> {
   }
 
   void addSubsection() {
-    setState(() {
+    setState(() { 
       Subsection newSubsection;
       final newKey = subsections.length;
 

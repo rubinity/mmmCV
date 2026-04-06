@@ -1,0 +1,13 @@
+Section,Subsection,Field Group,Field Label,Field Value
+Main Section,,,main_section.personal_info.first_name,Alice
+Main Section,,,main_section.personal_info.middle_name,
+Main Section,,,main_section.personal_info.last_name,gdrrertge
+Main Section,,,main_section.contact.email,
+Main Section,,,main_section.contact.phone,
+Main Section,,,main_section.contact.city,
+Main Section,,,main_section.contact.country,
+Main Section,,,main_section.online.website_1,
+Main Section,,,main_section.online.url_1,
+Main Section,,,main_section.online.website_2,
+Main Section,,,main_section.online.url_2,
+Main Section,,,main_section.summary.summary,

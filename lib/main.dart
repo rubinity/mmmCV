@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as material;
-import 'package:flutter/material.dart';
 import 'models/cv_section.dart';
-import 'models/section_board.dart';
 import 'models/custom_section.dart' as custom_section;
 import 'models/education_subsection.dart';
 import 'models/experience_subsection.dart';
 import 'models/user_data.dart';
 import 'services/csv_service.dart';
+import 'services/cv_data_service.dart';
 import 'services/rtf_service.dart';
 
 void main() {
@@ -37,7 +35,7 @@ class CvFormPage extends StatefulWidget {
   State<CvFormPage> createState() => _CvFormPageState();
 }
 
-class _CvFormPageState extends State<CvFormPage> {
+class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   String _selectedSectionType = 'education';
   final MainSection _mainSection = MainSection(sectionName: 'Main Information');
@@ -49,32 +47,43 @@ class _CvFormPageState extends State<CvFormPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    WidgetsBinding.instance.addObserver(this);
+    _loadUserData(); // This now handles auto-loading from CvDataService
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoSaveData(); // Save on exit
     _mainSection.allControllers.forEach((controller) => controller.dispose());
     _sectionNameController.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _autoSaveData(); // Save when app goes to background or is closed
+    }
+  }
+
   Future<void> _loadUserData() async {
     try {
-      final userDataList = await CsvService.loadUserData();
-      setState(() {
-        _userDataList = userDataList;
-        _sections = []; // Initialize sections list properly
-        print('🧪 Loaded ${userDataList.length} user entries');
-      });
+      // Use CvDataService instead of old CsvService
+      final cvData = await CvDataService.loadCvData();
+      print('🧪 Loaded CV data: ${cvData.keys}');
 
-      // If data exists, populate form fields
-      if (userDataList.isNotEmpty) {
-        // TODO: Implement data population by extracting controllers from UI elements
-        print('🧪 User data loaded: ${userDataList.first.firstName}');
+      // Restore data if available
+      if (cvData.isNotEmpty) {
+        if (cvData.containsKey('mainSection')) {
+          _restoreMainSectionData(
+              cvData['mainSection'] as Map<String, dynamic>);
+        }
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      print('Error loading CV data: $e');
     }
   }
 
@@ -150,6 +159,81 @@ class _CvFormPageState extends State<CvFormPage> {
     );
   }
 
+  // Auto-save data silently
+  Future<void> _autoSaveData() async {
+    try {
+      print('🔍 Starting auto-save...');
+
+      // Check if controllers exist
+      final controllers = _mainSection.allControllers;
+      print('🔍 Found ${controllers.length} controllers');
+
+      // Check controller values
+      for (int i = 0; i < controllers.length; i++) {
+        print('🔍 Controller $i: "${controllers[i].text}"');
+      }
+
+      // Extract data using CvDataService
+      final cvData = CvDataService.extractAllData(
+        controllers,
+        _sections,
+        [], // No sectionKeys in this simplified version
+      );
+      print('🔍 Extracted data: $cvData');
+
+      // Check if data is empty
+      if (cvData.isEmpty) {
+        print('🔥 No data to save - cvData is empty');
+        return;
+      }
+
+      // Save using CvDataService
+      await CvDataService.saveCvData(cvData);
+      print('💾 Auto-saved CV data successfully');
+    } catch (e, stackTrace) {
+      print('🔥 Auto-save failed: $e');
+      print('🔥 Stack trace: $stackTrace');
+    }
+  }
+
+  // Restore main section data from saved data
+  void _restoreMainSectionData(Map<String, dynamic> mainSectionData) {
+    final controllers = _mainSection.allControllers;
+    print('🔍 Found ${controllers.length} controllers');
+    print('🔍 Main section data keys: ${mainSectionData.keys}');
+
+    // Map field paths to controller indices based on MainSection structure
+    final fieldMapping = {
+      'main_section.personal_info.first_name': 0, // First Name
+      'main_section.personal_info.middle_name': 1, // Middle Name
+      'main_section.personal_info.last_name': 2, // Last Name
+      'main_section.contact.email': 3, // Email
+      'main_section.contact.phone': 4, // Phone
+      'main_section.contact.city': 5, // City
+      'main_section.contact.country': 6, // Country
+      'main_section.online.website_1': 7, // Website 1
+      'main_section.online.url_1': 8, // URL 1
+      'main_section.online.website_2': 9, // Website 2
+      'main_section.online.url_2': 10, // URL 2
+      'main_section.summary.summary': 11, // Summary
+    };
+
+    // Restore each field using the mapping
+    for (final entry in mainSectionData.entries) {
+      final fieldPath = entry.key;
+      final value = entry.value;
+
+      if (fieldMapping.containsKey(fieldPath)) {
+        final controllerIndex = fieldMapping[fieldPath]!;
+        if (controllerIndex < controllers.length) {
+          controllers[controllerIndex].text = value;
+          print(
+              '🔍 Restored $fieldPath (controller $controllerIndex) with value: "$value"');
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,6 +242,16 @@ class _CvFormPageState extends State<CvFormPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Test save button (temporary)
+            ElevatedButton(
+              onPressed: () {
+                print('🧪 Manual save test...');
+                _autoSaveData();
+              },
+              child: const Text('TEST SAVE'),
+            ),
+            const SizedBox(height: 16),
+
             // Main Section
             _mainSection.build(context),
 
@@ -185,7 +279,7 @@ class _CvFormPageState extends State<CvFormPage> {
                   children: [
                     // Add Section FieldGroup
                     FieldGroup(
-                      title: '', // Hidden title for internal use only
+                      title: 'Add Section',
                       fields: [
                         FieldDefinition(
                           label: 'Section Type',
@@ -233,7 +327,22 @@ class _CvFormPageState extends State<CvFormPage> {
     );
   }
 
+  void _removeSection(int index) {
+    setState(() {
+      if (index >= 0 && index < _sections.length) {
+        _sections.removeAt(index);
+      }
+    });
+
+    // Auto-save after removing section
+    _autoSaveData();
+  }
+
   void _addSection() {
+    // Test auto-save by calling it manually
+    print('🧪 Testing auto-save before adding section...');
+    _autoSaveData();
+
     // Get the section name from the form field or use default
     String customSectionName = _sectionNameController.text.trim();
     String sectionName;
@@ -288,15 +397,12 @@ class _CvFormPageState extends State<CvFormPage> {
       _sections.add(newSection);
     });
 
-    // Clear the section name field after adding
-    _sectionNameController.clear();
-  }
+    // Auto-save after adding section
+    _autoSaveData();
 
-  void _removeSection(int index) {
-    setState(() {
-      if (index >= 0 && index < _sections.length) {
-        _sections.removeAt(index);
-      }
-    });
+    // Only clear section name field if it was used
+    if (_sectionNameController.text.isNotEmpty) {
+      _sectionNameController.clear();
+    }
   }
 }

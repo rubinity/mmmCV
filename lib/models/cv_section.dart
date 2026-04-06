@@ -24,6 +24,9 @@ class FieldDefinition {
   final IconData? buttonIcon;
   final Function(String?)? onChanged;
 
+  // Cache for lazily created controller
+  TextEditingController? _cachedController;
+
   FieldDefinition({
     required this.label,
     required this.type,
@@ -39,19 +42,26 @@ class FieldDefinition {
     this.onChanged,
   });
 
+  // Create controller if not provided (for text fields)
+  TextEditingController get effectiveController {
+    if (controller != null) return controller!;
+
+    // Return cached controller or create new one
+    _cachedController ??= TextEditingController(text: initialValue ?? '');
+    return _cachedController!;
+  }
+
   Widget build(BuildContext context) {
     switch (type) {
       case FieldType.multiline:
         return Expanded(
           child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
+            controller: effectiveController,
+            maxLines: 3,
             decoration: InputDecoration(
               labelText: label,
-              hintText: placeholder,
               border: const OutlineInputBorder(),
             ),
-            maxLines: 3,
           ),
         );
       case FieldType.dropdown:
@@ -89,11 +99,9 @@ class FieldDefinition {
       default: // text, email, phone, url
         return Expanded(
           child: TextFormField(
-            controller: controller,
-            initialValue: initialValue,
+            controller: effectiveController,
             decoration: InputDecoration(
               labelText: label,
-              hintText: placeholder,
               border: const OutlineInputBorder(),
             ),
             keyboardType: switch (type) {
@@ -185,8 +193,8 @@ class FieldGroup {
   List<TextEditingController> get allControllers {
     final controllers = <TextEditingController>[];
     for (final field in fields) {
-      if (field.controller != null) {
-        controllers.add(field.controller!);
+      if (field.type != FieldType.button && field.type != FieldType.dropdown) {
+        controllers.add(field.effectiveController);
       }
     }
     return controllers;
