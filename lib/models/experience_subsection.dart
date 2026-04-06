@@ -12,14 +12,14 @@ class ExperienceSubsection extends custom_section.Subsection {
               title: 'Position',
               fields: [
                 FieldDefinition(
-                  label: 'Job Title',
-                  type: FieldType.text,
-                  width: 300,
-                ),
-                FieldDefinition(
                   label: 'Company',
                   type: FieldType.text,
-                  width: 300,
+                  width: 264,
+                ),
+                FieldDefinition(
+                  label: 'City/Country',
+                  type: FieldType.text,
+                  width: 140,
                 ),
               ],
             ),
@@ -27,9 +27,9 @@ class ExperienceSubsection extends custom_section.Subsection {
               title: 'Location & Duration',
               fields: [
                 FieldDefinition(
-                  label: 'City/Country',
+                  label: 'Job Title',
                   type: FieldType.text,
-                  width: 150,
+                  width: 200,
                 ),
                 FieldDefinition(
                   label: 'Start Date',
@@ -49,7 +49,7 @@ class ExperienceSubsection extends custom_section.Subsection {
                 FieldDefinition(
                   label: 'Description',
                   type: FieldType.multiline,
-                  width: 400,
+                  width: 408,
                 ),
               ],
             ),

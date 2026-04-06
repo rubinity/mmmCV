@@ -12,19 +12,14 @@ class EducationSubsection extends custom_section.Subsection {
               title: 'Degree',
               fields: [
                 FieldDefinition(
-                  label: 'Degree',
-                  type: FieldType.text,
-                  width: 200,
-                ),
-                FieldDefinition(
-                  label: 'Field of Study',
-                  type: FieldType.text,
-                  width: 200,
-                ),
-                FieldDefinition(
                   label: 'Institution',
                   type: FieldType.text,
-                  width: 200,
+                  width: 450,
+                ),
+                FieldDefinition(
+                  label: 'City/Country',
+                  type: FieldType.text,
+                  width: 145,
                 ),
               ],
             ),
@@ -32,9 +27,14 @@ class EducationSubsection extends custom_section.Subsection {
               title: 'Location & Duration',
               fields: [
                 FieldDefinition(
-                  label: 'City/Country',
+                  label: 'Degree',
                   type: FieldType.text,
-                  width: 100,
+                  width: 200,
+                ),
+                FieldDefinition(
+                  label: 'Field of Study',
+                  type: FieldType.text,
+                  width: 188,
                 ),
                 FieldDefinition(
                   label: 'Start',
@@ -54,7 +54,7 @@ class EducationSubsection extends custom_section.Subsection {
                 FieldDefinition(
                   label: 'Description',
                   type: FieldType.multiline,
-                  width: 400,
+                  width: 600,
                 ),
               ],
             ),
