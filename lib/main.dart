@@ -281,7 +281,6 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                 final section = entry.value;
                 return custom_section.CustomSection(
                   sectionName: section.sectionName,
-                  initialSubsections: section.initialSubsections,
                   subsectionType: section.subsectionType,
                   onRemoveSection: () => _removeSection(index),
                 );
@@ -388,18 +387,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       case 'education':
         newSection = custom_section.CustomSection(
           sectionName: sectionName,
-          initialSubsections: [
-            EducationSubsection(name: '${sectionName} Entry 1'),
-          ],
           subsectionType: custom_section.SubsectionType.education,
         );
         break;
       case 'experience':
         newSection = custom_section.CustomSection(
           sectionName: sectionName,
-          initialSubsections: [
-            ExperienceSubsection(name: '${sectionName} Entry 1'),
-          ],
           subsectionType: custom_section.SubsectionType.experience,
         );
         break;

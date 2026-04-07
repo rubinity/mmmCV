@@ -68,7 +68,6 @@ enum SubsectionType {
 
 class CustomSection extends StatefulWidget {
   final String sectionName;
-  final List<Subsection>? initialSubsections;
   final SubsectionType subsectionType;
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
@@ -76,7 +75,6 @@ class CustomSection extends StatefulWidget {
   const CustomSection({
     super.key,
     required this.sectionName,
-    this.initialSubsections,
     required this.subsectionType,
     this.onRemoveSection,
     this.sectionKey,
@@ -92,21 +90,26 @@ class CustomSectionState extends State<CustomSection> {
   @override
   void initState() {
     super.initState();
-    // Initialize with provided subsections or create default
-    if (widget.initialSubsections != null) {
-      for (int i = 0; i < widget.initialSubsections!.length; i++) {
-        subsections[i] = widget.initialSubsections![i];
-      }
-    } else {
-      subsections[0] = Subsection(
-        name: '${widget.sectionName} Entry 1',
-        fieldGroups: [],
-      );
+    // Create initial subsection based on type
+    subsections[0] = _createDefaultSubsection();
+  }
+
+  Subsection _createDefaultSubsection() {
+    switch (widget.subsectionType) {
+      case SubsectionType.education:
+        return EducationSubsection(name: '${widget.sectionName} Entry 1');
+      case SubsectionType.experience:
+        return ExperienceSubsection(name: '${widget.sectionName} Entry 1');
+      default:
+        return Subsection(
+          name: '${widget.sectionName} Entry 1',
+          fieldGroups: [],
+        );
     }
   }
 
   void addSubsection() {
-    setState(() { 
+    setState(() {
       Subsection newSubsection;
       final newKey = subsections.length;
 
