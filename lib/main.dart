@@ -53,19 +53,29 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    print('=== DEBUG: dispose() called ===');
+    print('=== DEBUG: About to auto-save ===');
     WidgetsBinding.instance.removeObserver(this);
     _autoSaveData(); // Save on exit
+    print('=== DEBUG: Auto-save completed ===');
     _mainSection.allControllers.forEach((controller) => controller.dispose());
     _sectionNameController.dispose();
+    print('=== DEBUG: Controllers disposed ===');
     super.dispose();
+    print('=== DEBUG: dispose() finished ===');
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('=== DEBUG: Lifecycle state changed to: $state ===');
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.inactive) {
+      print('=== DEBUG: Triggering auto-save due to lifecycle state ===');
       _autoSaveData(); // Save when app goes to background or is closed
+      print('=== DEBUG: Lifecycle auto-save completed ===');
     }
   }
 
@@ -162,15 +172,15 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   // Auto-save data silently
   Future<void> _autoSaveData() async {
     try {
-      print('🔍 Starting auto-save...');
+      print('=== DEBUG: Starting auto-save ===');
 
       // Check if controllers exist
       final controllers = _mainSection.allControllers;
-      print('🔍 Found ${controllers.length} controllers');
+      print('=== DEBUG: Found ${controllers.length} controllers ===');
 
       // Check controller values
       for (int i = 0; i < controllers.length; i++) {
-        print('🔍 Controller $i: "${controllers[i].text}"');
+        print('=== DEBUG: Controller $i: "${controllers[i].text}" ===');
       }
 
       // Extract data using CvDataService
@@ -179,20 +189,28 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         _sections,
         [], // No sectionKeys in this simplified version
       );
-      print('🔍 Extracted data: $cvData');
+      print('=== DEBUG: Extracted data: $cvData ===');
 
       // Check if data is empty
       if (cvData.isEmpty) {
-        print('🔥 No data to save - cvData is empty');
+        print('=== DEBUG: No data to save - cvData is empty ===');
         return;
       }
 
-      // Save using CvDataService
+      // *** SYNCHRONOUS BACKUP SAVE FIRST ***
+      print('=== DEBUG: Starting synchronous backup save ===');
+      CvDataService.syncSaveCvData(cvData); // Immediate synchronous save
+      print('=== DEBUG: Synchronous backup save completed ===');
+
+      // Also try async save (might be interrupted)
+      print('=== DEBUG: Starting async save ===');
       await CvDataService.saveCvData(cvData);
-      print('💾 Auto-saved CV data successfully');
+      print('=== DEBUG: Async save completed ===');
+
+      print('=== DEBUG: Auto-save completed successfully ===');
     } catch (e, stackTrace) {
-      print('🔥 Auto-save failed: $e');
-      print('🔥 Stack trace: $stackTrace');
+      print('=== DEBUG: Auto-save failed: $e ===');
+      print('=== DEBUG: Stack trace: $stackTrace ===');
     }
   }
 

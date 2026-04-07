@@ -149,12 +149,29 @@ class CvDataService {
       final csvData = _convertToCsvRows(cvData);
       final csv = const ListToCsvConverter().convert(csvData);
 
-      // Write to file
+      // Write to file asynchronously
       await file.writeAsString(csv);
 
-      print('✅ CV data saved successfully');
+      print('Async save completed');
     } catch (e) {
       throw Exception('Failed to save CV data: $e');
+    }
+  }
+
+  /// Synchronous backup save (immediate write)
+  static void syncSaveCvData(Map<String, dynamic> cvData) {
+    try {
+      // Convert CV data to CSV format
+      final csvData = _convertToCsvRows(cvData);
+      final csv = const ListToCsvConverter().convert(csvData);
+
+      // Write synchronously using File system directly
+      final file = File('${Directory.current.path}/data/cv_data.csv');
+      file.writeAsStringSync(csv); // Synchronous write
+
+      print('Synchronous save completed - data written to disk');
+    } catch (e) {
+      print('Synchronous save failed: $e');
     }
   }
 
