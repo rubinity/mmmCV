@@ -77,6 +77,7 @@ class CustomSection extends StatefulWidget {
   final SectionType subsectionType;
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
+  late final String sectionId; // Add unique section ID
 
   // Track widget instance for debugging
   final String widgetId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -87,8 +88,11 @@ class CustomSection extends StatefulWidget {
     required this.subsectionType,
     this.onRemoveSection,
     this.sectionKey,
+    String? sectionId, // Optional sectionId parameter
   }) {
-    print('=== DEBUG: CustomSection widget created: $widgetId ===');
+    this.sectionId = sectionId ?? widgetId; // Use provided ID or generate one
+    print(
+        '=== DEBUG: CustomSection widget created: $widgetId (sectionId: ${this.sectionId}) ===');
   }
 
   // Expose controllers from state via sectionKey

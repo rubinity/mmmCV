@@ -1,20 +1,20 @@
-Section,Subsection,Field Group,Field Label,Field Value
-Main Section,,,main_section.personal_info.first_name,dfsfsfsf
-Main Section,,,main_section.personal_info.middle_name,
-Main Section,,,main_section.personal_info.last_name,
-Main Section,,,main_section.contact.email,
-Main Section,,,main_section.contact.phone,
-Main Section,,,main_section.contact.city,
-Main Section,,,main_section.contact.country,
-Main Section,,,main_section.online.website_1,
-Main Section,,,main_section.online.url_1,
-Main Section,,,main_section.online.website_2,
-Main Section,,,main_section.online.url_2,
-Main Section,,,main_section.summary.summary,
-Custom Section,Education,Field 1,Controller 1,sdfsfsfsf
-Custom Section,Education,Field 2,Controller 2,
-Custom Section,Education,Field 3,Controller 3,
-Custom Section,Education,Field 4,Controller 4,
-Custom Section,Education,Field 5,Controller 5,
-Custom Section,Education,Field 6,Controller 6,
-Custom Section,Education,Field 7,Controller 7,dsfsfsfsf rtwtwtw
+Section ID,Section Name,Section Type,Field Group,Field Label,Field Value
+,,,,main_section.personal_info.first_name,fdgfgdgdf
+,,,,main_section.personal_info.middle_name,
+,,,,main_section.personal_info.last_name,
+,,,,main_section.contact.email,
+,,,,main_section.contact.phone,
+,,,,main_section.contact.city,
+,,,,main_section.contact.country,
+,,,,main_section.online.website_1,
+,,,,main_section.online.url_1,
+,,,,main_section.online.website_2,
+,,,,main_section.online.url_2,
+,,,,main_section.summary.summary,
+1775676130903,Education,SectionType.education,Field 1,Controller 1,dfgfdgdgd
+1775676130903,Education,SectionType.education,Field 2,Controller 2,
+1775676130903,Education,SectionType.education,Field 3,Controller 3,
+1775676130903,Education,SectionType.education,Field 4,Controller 4,
+1775676130903,Education,SectionType.education,Field 5,Controller 5,
+1775676130903,Education,SectionType.education,Field 6,Controller 6,
+1775676130903,Education,SectionType.education,Field 7,Controller 7,

@@ -69,13 +69,18 @@ class CvDataService {
 
     for (final section in sections) {
       print('=== DEBUG: Processing section: ${section.sectionName} ===');
-      // Get controllers directly from section
-      final controllers = section.allControllers;
+
+      // Get controllers directly from state using the controllers field
+      final currentState = section.sectionKey?.currentState;
+      final controllers =
+          currentState?.controllers ?? []; // Use direct controllers field
+
       print(
           '=== DEBUG: Found ${controllers.length} controllers for section ===');
 
       if (controllers.isNotEmpty) {
         final sectionData = {
+          'sectionId': section.sectionId, // Add section ID to saved data
           'sectionName': section.sectionName,
           'subsectionType': section.subsectionType.toString(),
           'controllers':
@@ -210,14 +215,27 @@ class CvDataService {
     final List<List<dynamic>> csvRows = [];
 
     // Add headers
-    csvRows.add(
-        ['Section', 'Subsection', 'Field Group', 'Field Label', 'Field Value']);
+    csvRows.add([
+      'Section ID',
+      'Section Name',
+      'Section Type',
+      'Field Group',
+      'Field Label',
+      'Field Value'
+    ]);
 
     // Add main section data
     if (cvData.containsKey('mainSection')) {
       final mainSection = cvData['mainSection'] as Map<String, dynamic>;
       for (final entry in mainSection.entries) {
-        csvRows.add(['Main Section', '', '', entry.key, entry.value]);
+        csvRows.add([
+          '',
+          '',
+          '',
+          '',
+          entry.key,
+          entry.value
+        ]); // 6 columns: ID, Name, Type, Field Group, Field Label, Field Value
       }
     }
 
@@ -227,16 +245,22 @@ class CvDataService {
           cvData['customSections'] as List<Map<String, dynamic>>;
       for (final section in customSections) {
         final sectionName = section['sectionName'] as String;
+        final sectionId = section['sectionId'] as String? ?? '';
+        final subsectionType = section['subsectionType'] as String;
         final controllers = section['controllers'] as List<String>;
 
-        // Add each controller value as a row
+        print(
+            '=== DEBUG: Saving section: $sectionName (ID: $sectionId, Type: $subsectionType) ===');
+
+        // Add each controller value as a row with sectionId and type
         for (int i = 0; i < controllers.length; i++) {
           csvRows.add([
-            'Custom Section',
-            sectionName,
-            'Field ${i + 1}',
-            'Controller ${i + 1}',
-            controllers[i]
+            sectionId, // Section ID (first)
+            sectionName, // Section Name (second)
+            subsectionType, // Section Type (third)
+            'Field ${i + 1}', // Field Group
+            'Controller ${i + 1}', // Field Label
+            controllers[i] // Field Value
           ]);
         }
       }

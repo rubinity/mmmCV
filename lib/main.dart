@@ -444,6 +444,9 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         sectionName: sectionName,
         subsectionType: custom_section.SectionType.education,
         sectionKey: sectionKey,
+        sectionId: DateTime.now()
+            .millisecondsSinceEpoch
+            .toString(), // Generate unique ID
       );
     } else if (sectionName.toLowerCase().contains('experience')) {
       newSection = custom_section.CustomSection(
@@ -451,13 +454,20 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         sectionName: sectionName,
         subsectionType: custom_section.SectionType.experience,
         sectionKey: sectionKey,
+        sectionId: DateTime.now()
+            .millisecondsSinceEpoch
+            .toString(), // Generate unique ID
       );
     } else {
       newSection = custom_section.CustomSection(
         key: sectionKey,
         sectionName: sectionName,
-        subsectionType: custom_section.SectionType.education,
+        subsectionType:
+            custom_section.SectionType.education, // Default to education
         sectionKey: sectionKey,
+        sectionId: DateTime.now()
+            .millisecondsSinceEpoch
+            .toString(), // Generate unique ID
       );
     }
 
