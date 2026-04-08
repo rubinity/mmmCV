@@ -7,6 +7,7 @@ import 'models/user_data.dart';
 import 'services/csv_service.dart';
 import 'services/cv_data_service.dart';
 import 'services/rtf_service.dart';
+import 'models/section_types.dart';
 
 void main() {
   runApp(const MmmCVApp());
@@ -437,31 +438,27 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     _sectionKeys[sectionName] = sectionKey;
 
     custom_section.CustomSection newSection;
-    switch (_selectedSectionType) {
-      case 'education':
-        newSection = custom_section.CustomSection(
-          key: sectionKey, // Use sectionKey as widget key
-          sectionName: sectionName,
-          subsectionType: custom_section.SubsectionType.education,
-          sectionKey: sectionKey,
-        );
-        break;
-      case 'experience':
-        newSection = custom_section.CustomSection(
-          key: sectionKey, // Use sectionKey as widget key
-          sectionName: sectionName,
-          subsectionType: custom_section.SubsectionType.experience,
-          sectionKey: sectionKey,
-        );
-        break;
-      default:
-        newSection = custom_section.CustomSection(
-          key: sectionKey, // Use sectionKey as widget key
-          sectionName: sectionName,
-          subsectionType: custom_section.SubsectionType.generic,
-          sectionKey: sectionKey,
-        );
-        break;
+    if (sectionName.toLowerCase().contains('education')) {
+      newSection = custom_section.CustomSection(
+        key: sectionKey,
+        sectionName: sectionName,
+        subsectionType: custom_section.SectionType.education,
+        sectionKey: sectionKey,
+      );
+    } else if (sectionName.toLowerCase().contains('experience')) {
+      newSection = custom_section.CustomSection(
+        key: sectionKey,
+        sectionName: sectionName,
+        subsectionType: custom_section.SectionType.experience,
+        sectionKey: sectionKey,
+      );
+    } else {
+      newSection = custom_section.CustomSection(
+        key: sectionKey,
+        sectionName: sectionName,
+        subsectionType: custom_section.SectionType.education,
+        sectionKey: sectionKey,
+      );
     }
 
     setState(() {

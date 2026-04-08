@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'cv_section.dart';
 import 'education_subsection.dart';
 import 'experience_subsection.dart';
+import 'section_types.dart';
 
 class Subsection {
   final String name;
@@ -60,6 +61,11 @@ class Subsection {
   }
 }
 
+enum SectionType {
+  education,
+  experience,
+}
+
 enum SubsectionType {
   generic,
   education,
@@ -68,7 +74,7 @@ enum SubsectionType {
 
 class CustomSection extends StatefulWidget {
   final String sectionName;
-  final SubsectionType subsectionType;
+  final SectionType subsectionType;
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
 
@@ -172,9 +178,9 @@ class CustomSectionState extends State<CustomSection> {
 
   Subsection _createDefaultSubsection() {
     switch (widget.subsectionType) {
-      case SubsectionType.education:
+      case SectionType.education:
         return EducationSubsection(name: '${widget.sectionName} Entry 1');
-      case SubsectionType.experience:
+      case SectionType.experience:
         return ExperienceSubsection(name: '${widget.sectionName} Entry 1');
       default:
         return Subsection(
@@ -190,12 +196,12 @@ class CustomSectionState extends State<CustomSection> {
       final newKey = subsections.length;
 
       switch (widget.subsectionType) {
-        case SubsectionType.education:
+        case SectionType.education:
           newSubsection = EducationSubsection(
             name: '${widget.sectionName} Entry ${newKey + 1}',
           );
           break;
-        case SubsectionType.experience:
+        case SectionType.experience:
           newSubsection = ExperienceSubsection(
             name: '${widget.sectionName} Entry ${newKey + 1}',
           );
