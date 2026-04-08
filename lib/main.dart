@@ -40,9 +40,15 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   String _selectedSectionType = 'education';
   final MainSection _mainSection = MainSection(sectionName: 'Main Information');
   List<custom_section.CustomSection> _sections = [];
+  Map<String, GlobalKey<custom_section.CustomSectionState>> _sectionKeys = {};
+  Map<String, custom_section.CustomSection> _sectionWidgets =
+      {}; // Store widget instances
+  Map<String, List<TextEditingController>> _sectionControllers =
+      {}; // Parent-managed controllers
   bool _isLoading = false;
   List<UserData> _userDataList = [];
   final _sectionNameController = TextEditingController();
+  bool _isDisposed = false; // Add disposal flag
 
   @override
   void initState() {
@@ -54,13 +60,19 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     print('=== DEBUG: dispose() called ===');
-    print('=== DEBUG: About to auto-save ===');
+    _isDisposed = true; // Set disposal flag
     WidgetsBinding.instance.removeObserver(this);
-    _autoSaveData(); // Save on exit
+
+    print('=== DEBUG: About to auto-save BEFORE disposing controllers ===');
+    // Save BEFORE disposing controllers
+    _autoSaveData();
     print('=== DEBUG: Auto-save completed ===');
+
+    // Dispose controllers AFTER saving
     _mainSection.allControllers.forEach((controller) => controller.dispose());
     _sectionNameController.dispose();
     print('=== DEBUG: Controllers disposed ===');
+
     super.dispose();
     print('=== DEBUG: dispose() finished ===');
   }
@@ -69,6 +81,13 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print('=== DEBUG: Lifecycle state changed to: $state ===');
     super.didChangeAppLifecycleState(state);
+
+    // Don't save if widget is disposed
+    if (_isDisposed) {
+      print('=== DEBUG: Widget disposed, skipping lifecycle save ===');
+      return;
+    }
+
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.hidden ||
@@ -173,21 +192,33 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   Future<void> _autoSaveData() async {
     try {
       print('=== DEBUG: Starting auto-save ===');
+      print('=== DEBUG: Number of sections: ${_sections.length} ===');
 
       // Check if controllers exist
       final controllers = _mainSection.allControllers;
-      print('=== DEBUG: Found ${controllers.length} controllers ===');
+      print('=== DEBUG: Found ${controllers.length} main controllers ===');
 
-      // Check controller values
+      // Check main controller values
       for (int i = 0; i < controllers.length; i++) {
-        print('=== DEBUG: Controller $i: "${controllers[i].text}" ===');
+        print('=== DEBUG: Main Controller $i: "${controllers[i].text}" ===');
+      }
+
+      // Check custom sections
+      for (int i = 0; i < _sections.length; i++) {
+        final section = _sections[i];
+        final sectionControllers = section.allControllers;
+        print(
+            '=== DEBUG: Section $i (${section.sectionName}): ${sectionControllers.length} controllers ===');
+        for (int j = 0; j < sectionControllers.length; j++) {
+          print(
+              '=== DEBUG: Section $i Controller $j: "${sectionControllers[j].text}" ===');
+        }
       }
 
       // Extract data using CvDataService
       final cvData = CvDataService.extractAllData(
         controllers,
         _sections,
-        [], // No sectionKeys in this simplified version
       );
       print('=== DEBUG: Extracted data: $cvData ===');
 
@@ -203,9 +234,9 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       print('=== DEBUG: Synchronous backup save completed ===');
 
       // Also try async save (might be interrupted)
-      print('=== DEBUG: Starting async save ===');
-      await CvDataService.saveCvData(cvData);
-      print('=== DEBUG: Async save completed ===');
+      // print('=== DEBUG: Starting async save ===');
+      // await CvDataService.saveCvData(cvData);
+      // print('=== DEBUG: Async save completed ===');
 
       print('=== DEBUG: Auto-save completed successfully ===');
     } catch (e, stackTrace) {
@@ -276,15 +307,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             // Custom Sections Board
             if (_sections.isNotEmpty) ...[
               const SizedBox(height: 16),
-              ..._sections.asMap().entries.map((entry) {
-                final index = entry.key;
-                final section = entry.value;
-                return custom_section.CustomSection(
-                  sectionName: section.sectionName,
-                  subsectionType: section.subsectionType,
-                  onRemoveSection: () => _removeSection(index),
-                );
-              }).toList(),
+              ..._sections.map((section) => section).toList(),
             ],
 
             // Add Section Group
@@ -347,12 +370,40 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   void _removeSection(int index) {
     setState(() {
       if (index >= 0 && index < _sections.length) {
-        _sections.removeAt(index);
+        final removedSection = _sections.removeAt(index);
+        _sectionKeys.remove(removedSection.sectionName);
       }
     });
 
     // Auto-save after removing section
     _autoSaveData();
+  }
+
+  // Helper method to create controllers based on section type
+  List<TextEditingController> _createControllersForSection(String sectionType) {
+    switch (sectionType) {
+      case 'education':
+        return [
+          TextEditingController(), // Institution
+          TextEditingController(), // City/Country
+          TextEditingController(), // Degree
+          TextEditingController(), // Field of Study
+          TextEditingController(), // Start
+          TextEditingController(), // End
+          TextEditingController(), // Description
+        ];
+      case 'experience':
+        return [
+          TextEditingController(), // Company
+          TextEditingController(), // City/Country
+          TextEditingController(), // Job Title
+          TextEditingController(), // Start Date
+          TextEditingController(), // End Date
+          TextEditingController(), // Description
+        ];
+      default:
+        return [];
+    }
   }
 
   void _addSection() {
@@ -382,24 +433,33 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     }
 
     // Create appropriate section based on type
+    final sectionKey = GlobalKey<custom_section.CustomSectionState>();
+    _sectionKeys[sectionName] = sectionKey;
+
     custom_section.CustomSection newSection;
     switch (_selectedSectionType) {
       case 'education':
         newSection = custom_section.CustomSection(
+          key: sectionKey, // Use sectionKey as widget key
           sectionName: sectionName,
           subsectionType: custom_section.SubsectionType.education,
+          sectionKey: sectionKey,
         );
         break;
       case 'experience':
         newSection = custom_section.CustomSection(
+          key: sectionKey, // Use sectionKey as widget key
           sectionName: sectionName,
           subsectionType: custom_section.SubsectionType.experience,
+          sectionKey: sectionKey,
         );
         break;
       default:
         newSection = custom_section.CustomSection(
+          key: sectionKey, // Use sectionKey as widget key
           sectionName: sectionName,
           subsectionType: custom_section.SubsectionType.generic,
+          sectionKey: sectionKey,
         );
         break;
     }

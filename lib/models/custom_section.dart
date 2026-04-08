@@ -72,13 +72,35 @@ class CustomSection extends StatefulWidget {
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
 
-  const CustomSection({
+  // Track widget instance for debugging
+  final String widgetId = DateTime.now().millisecondsSinceEpoch.toString();
+
+  CustomSection({
     super.key,
     required this.sectionName,
     required this.subsectionType,
     this.onRemoveSection,
     this.sectionKey,
-  });
+  }) {
+    print('=== DEBUG: CustomSection widget created: $widgetId ===');
+  }
+
+  // Expose controllers from state via sectionKey
+  List<TextEditingController> get allControllers {
+    final currentState = sectionKey?.currentState;
+    print(
+        '=== DEBUG: Widget $widgetId: State accessible: ${currentState != null} ===');
+
+    if (currentState == null) {
+      print('=== DEBUG: Widget $widgetId: State not accessible ===');
+      return [];
+    }
+
+    final controllers = currentState.allControllers;
+    print(
+        '=== DEBUG: Widget $widgetId: Returning ${controllers.length} controllers ===');
+    return controllers;
+  }
 
   @override
   State<CustomSection> createState() => CustomSectionState();
@@ -86,12 +108,66 @@ class CustomSection extends StatefulWidget {
 
 class CustomSectionState extends State<CustomSection> {
   Map<int, Subsection> subsections = {};
+  List<TextEditingController> controllers = []; // Store controllers in state
+  bool _isInitialized = false; // Track initialization state
 
   @override
   void initState() {
     super.initState();
+    print('=== DEBUG: CustomSectionState.initState called ===');
     // Create initial subsection based on type
     subsections[0] = _createDefaultSubsection();
+    print('=== DEBUG: Created subsection: ${subsections[0]?.name} ===');
+
+    // Register controllers from initial subsection
+    _registerControllers();
+    _isInitialized = true; // Mark as initialized
+
+    print('=== DEBUG: State initialization completed ===');
+  }
+
+  void _registerControllers() {
+    print('=== DEBUG: _registerControllers called ===');
+    controllers.clear(); // Clear previous controllers
+    for (final subsection in subsections.values) {
+      print('=== DEBUG: Processing subsection: ${subsection.name} ===');
+      for (final fieldGroup in subsection.fieldGroups) {
+        print('=== DEBUG: Processing field group: ${fieldGroup.title} ===');
+        for (final field in fieldGroup.fields) {
+          if (field.controller != null) {
+            print('=== DEBUG: Adding controller for field: ${field.label} ===');
+            controllers.add(field.controller!); // Add to state controllers
+          } else {
+            print('=== DEBUG: Field ${field.label} has no controller ===');
+          }
+        }
+      }
+    }
+    print(
+        '=== DEBUG: Total controllers in state: ${subsections.values.map((subsection) => subsection.allControllers).fold(0, (a, b) => a + b.length)} ===');
+  }
+
+  // Expose controllers from subsections
+  List<TextEditingController> get allControllers {
+    if (!_isInitialized) {
+      print(
+          '=== DEBUG: State not initialized yet, returning 0 controllers ===');
+      return [];
+    }
+
+    final controllers = <TextEditingController>[];
+    for (final subsection in subsections.values) {
+      for (final fieldGroup in subsection.fieldGroups) {
+        for (final field in fieldGroup.fields) {
+          if (field.controller != null) {
+            controllers.add(field.controller!);
+          }
+        }
+      }
+    }
+    print(
+        '=== DEBUG: Extracted ${controllers.length} controllers from subsections ===');
+    return controllers;
   }
 
   Subsection _createDefaultSubsection() {
@@ -133,6 +209,8 @@ class CustomSectionState extends State<CustomSection> {
       }
 
       subsections[newKey] = newSubsection;
+      // Register controllers from new subsection
+      _registerControllers();
     });
   }
 
@@ -271,13 +349,5 @@ class CustomSectionState extends State<CustomSection> {
               })
           .toList(),
     };
-  }
-
-  List<TextEditingController> get allControllers {
-    final controllers = <TextEditingController>[];
-    for (final subsection in subsections.values) {
-      controllers.addAll(subsection.allControllers);
-    }
-    return controllers;
   }
 }

@@ -23,11 +23,10 @@ class CvDataService {
   static Map<String, dynamic> extractAllData(
     List<TextEditingController> mainControllers,
     List<custom_section.CustomSection> customSections,
-    List<GlobalKey<custom_section.CustomSectionState>> sectionKeys,
   ) {
     final Map<String, dynamic> cvData = {
       'mainSection': _extractMainSectionData(mainControllers),
-      'customSections': _extractCustomSectionsData(customSections, sectionKeys),
+      'customSections': _extractCustomSectionsData(customSections),
     };
     return cvData;
   }
@@ -62,25 +61,31 @@ class CvDataService {
     return mainData;
   }
 
-  /// Extract custom sections data from CustomSection widgets
+  /// Extract custom sections data from CustomSection widgets using controllers
   static List<Map<String, dynamic>> _extractCustomSectionsData(
     List<custom_section.CustomSection> sections,
-    List<GlobalKey<custom_section.CustomSectionState>> sectionKeys,
   ) {
     final List<Map<String, dynamic>> sectionsData = [];
 
-    for (int i = 0; i < sections.length; i++) {
-      final section = sections[i];
-      final sectionKey = i < sectionKeys.length ? sectionKeys[i] : null;
+    for (final section in sections) {
+      print('=== DEBUG: Processing section: ${section.sectionName} ===');
+      // Get controllers directly from section
+      final controllers = section.allControllers;
+      print(
+          '=== DEBUG: Found ${controllers.length} controllers for section ===');
 
-      if (sectionKey?.currentState != null) {
+      if (controllers.isNotEmpty) {
         final sectionData = {
           'sectionName': section.sectionName,
           'subsectionType': section.subsectionType.toString(),
-          'subsections':
-              _extractSubsectionsData(sectionKey!.currentState!.subsections),
+          'controllers':
+              controllers.map((controller) => controller.text).toList(),
         };
         sectionsData.add(sectionData);
+        print(
+            '=== DEBUG: Section data extracted: ${sectionData['controllers']} ===');
+      } else {
+        print('=== DEBUG: No controllers found for section ===');
       }
     }
 
@@ -222,30 +227,17 @@ class CvDataService {
           cvData['customSections'] as List<Map<String, dynamic>>;
       for (final section in customSections) {
         final sectionName = section['sectionName'] as String;
-        final subsections =
-            section['subsections'] as List<Map<String, dynamic>>;
+        final controllers = section['controllers'] as List<String>;
 
-        for (final subsection in subsections) {
-          final subsectionName = subsection['name'] as String;
-          final fieldGroups =
-              subsection['fieldGroups'] as List<Map<String, dynamic>>;
-
-          for (final fieldGroup in fieldGroups) {
-            final fieldGroupTitle = fieldGroup['title'] as String;
-            final fields = fieldGroup['fields'] as List<Map<String, dynamic>>;
-
-            for (final field in fields) {
-              final fieldLabel = field['label'] as String;
-              final fieldValue = field['value'] as String;
-              csvRows.add([
-                sectionName,
-                subsectionName,
-                fieldGroupTitle,
-                fieldLabel,
-                fieldValue
-              ]);
-            }
-          }
+        // Add each controller value as a row
+        for (int i = 0; i < controllers.length; i++) {
+          csvRows.add([
+            'Custom Section',
+            sectionName,
+            'Field ${i + 1}',
+            'Controller ${i + 1}',
+            controllers[i]
+          ]);
         }
       }
     }
