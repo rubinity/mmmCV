@@ -3,6 +3,7 @@ import 'cv_section.dart';
 import 'education_subsection.dart';
 import 'experience_subsection.dart';
 import 'section_types.dart';
+import '../services/cv_data_service.dart' show SubsectionData;
 
 class Subsection {
   final String name;
@@ -67,7 +68,7 @@ class CustomSection extends StatefulWidget {
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
   late final String sectionId; // Add unique section ID
-  final List<String>? preloadedControllerValues; // Preloaded controller values
+  final List<SubsectionData>? preloadedSubsections; // Preloaded subsections
 
   // Track widget instance for debugging
   final String widgetId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -79,7 +80,7 @@ class CustomSection extends StatefulWidget {
     this.onRemoveSection,
     this.sectionKey,
     String? sectionId, // Optional sectionId parameter
-    this.preloadedControllerValues, // Optional preloaded controller values
+    this.preloadedSubsections, // Optional preloaded subsections
   }) {
     this.sectionId = sectionId ?? widgetId; // Use provided ID or generate one
     print(
@@ -116,15 +117,44 @@ class CustomSectionState extends State<CustomSection> {
   void initState() {
     super.initState();
     print('=== DEBUG: CustomSectionState.initState called ===');
-    // Create initial subsection based on type
-    subsections[0] = _createDefaultSubsection();
-    print('=== DEBUG: Created subsection: ${subsections[0]?.name} ===');
 
-    // Register controllers from initial subsection
+    // Create subsections from preloaded data or create default
+    if (widget.preloadedSubsections != null &&
+        widget.preloadedSubsections!.isNotEmpty) {
+      print(
+          '=== DEBUG: Creating ${widget.preloadedSubsections!.length} subsections from preloaded data ===');
+      for (int i = 0; i < widget.preloadedSubsections!.length; i++) {
+        final subsectionData = widget.preloadedSubsections![i];
+        subsections[i] = _createSubsectionFromData(subsectionData, i);
+        print('=== DEBUG: Created subsection: ${subsections[i]?.name} ===');
+      }
+    } else {
+      // Create initial subsection based on type
+      subsections[0] = _createDefaultSubsection();
+      print(
+          '=== DEBUG: Created default subsection: ${subsections[0]?.name} ===');
+    }
+
+    // Register controllers from subsections
     registerControllers();
     _isInitialized = true; // Mark as initialized
 
     print('=== DEBUG: State initialization completed ===');
+  }
+
+  Subsection _createSubsectionFromData(SubsectionData data, int index) {
+    switch (widget.subsectionType) {
+      case SectionType.education:
+        return EducationSubsection(
+          name: data.name,
+          restoredValues: data.controllerValues,
+        );
+      case SectionType.experience:
+        return ExperienceSubsection(
+          name: data.name,
+          restoredValues: data.controllerValues,
+        );
+    }
   }
 
   void registerControllers() {
@@ -176,12 +206,16 @@ class CustomSectionState extends State<CustomSection> {
       case SectionType.education:
         return EducationSubsection(
           name: '${widget.sectionName} Entry 1',
-          restoredValues: widget.preloadedControllerValues,
+          restoredValues: widget.preloadedSubsections?.isNotEmpty == true
+              ? widget.preloadedSubsections!.first.controllerValues
+              : null,
         );
       case SectionType.experience:
         return ExperienceSubsection(
           name: '${widget.sectionName} Entry 1',
-          restoredValues: widget.preloadedControllerValues,
+          restoredValues: widget.preloadedSubsections?.isNotEmpty == true
+              ? widget.preloadedSubsections!.first.controllerValues
+              : null,
         );
     }
   }

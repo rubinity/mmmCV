@@ -5,16 +5,27 @@ import '../models/custom_section.dart' as custom_section;
 import '../models/cv_section.dart';
 import '../models/section_types.dart';
 
+// Data for a subsection within a custom section
+class SubsectionData {
+  final String name;
+  final List<String> controllerValues;
+
+  SubsectionData({
+    required this.name,
+    required this.controllerValues,
+  });
+}
+
 // Preloaded data structure for CV restoration
 class PreloadedCvData {
   final Map<String, String> mainSectionValues;
   final List<CustomSectionMetadata> customSections;
-  final Map<String, List<String>> customSectionControllerValues;
+  final Map<String, List<SubsectionData>> customSectionSubsections;
 
   PreloadedCvData({
     required this.mainSectionValues,
     required this.customSections,
-    required this.customSectionControllerValues,
+    required this.customSectionSubsections,
   });
 
   bool get isEmpty => mainSectionValues.isEmpty && customSections.isEmpty;
@@ -224,7 +235,7 @@ class CvDataService {
         return PreloadedCvData(
           mainSectionValues: {},
           customSections: [],
-          customSectionControllerValues: {},
+          customSectionSubsections: {},
         );
       }
 
@@ -233,7 +244,7 @@ class CvDataService {
         return PreloadedCvData(
           mainSectionValues: {},
           customSections: [],
-          customSectionControllerValues: {},
+          customSectionSubsections: {},
         );
       }
 
@@ -243,7 +254,7 @@ class CvDataService {
         return PreloadedCvData(
           mainSectionValues: {},
           customSections: [],
-          customSectionControllerValues: {},
+          customSectionSubsections: {},
         );
       }
 
@@ -318,8 +329,9 @@ class CvDataService {
 
     final Map<String, String> mainSectionValues = {};
     final List<CustomSectionMetadata> customSections = [];
-    final Map<String, List<String>> customSectionControllerValues = {};
+    final Map<String, List<SubsectionData>> customSectionSubsections = {};
     final Map<String, int> sectionOrderMap = {};
+    final Map<String, List<String>> sectionControllerValues = {};
     int orderCounter = 0;
 
     // Skip header row
@@ -328,7 +340,7 @@ class CvDataService {
       return PreloadedCvData(
         mainSectionValues: mainSectionValues,
         customSections: customSections,
-        customSectionControllerValues: customSectionControllerValues,
+        customSectionSubsections: customSectionSubsections,
       );
     }
 
@@ -357,7 +369,7 @@ class CvDataService {
         // Custom section row
         if (!sectionOrderMap.containsKey(sectionId)) {
           sectionOrderMap[sectionId] = orderCounter++;
-          customSectionControllerValues[sectionId] = [];
+          sectionControllerValues[sectionId] = [];
 
           // Parse section type from string like "SectionType.education"
           final typeString = sectionType.split('.').last;
@@ -377,9 +389,39 @@ class CvDataService {
         }
 
         // Add controller value
-        customSectionControllerValues[sectionId]!.add(fieldValue);
+        sectionControllerValues[sectionId]!.add(fieldValue);
         print('=== DEBUG: Added controller to custom section $sectionId ===');
       }
+    }
+
+    // Convert controller values to subsections
+    // Education subsections typically have 7 fields, Experience have 6 fields
+    for (final entry in sectionControllerValues.entries) {
+      final sectionId = entry.key;
+      final controllerValues = entry.value;
+      final sectionMetadata =
+          customSections.firstWhere((s) => s.sectionId == sectionId);
+
+      final fieldsPerSubsection =
+          sectionMetadata.sectionType == SectionType.education ? 7 : 6;
+      final subsections = <SubsectionData>[];
+
+      for (int i = 0; i < controllerValues.length; i += fieldsPerSubsection) {
+        final end = (i + fieldsPerSubsection < controllerValues.length)
+            ? i + fieldsPerSubsection
+            : controllerValues.length;
+        final subsectionValues = controllerValues.sublist(i, end);
+
+        subsections.add(SubsectionData(
+          name:
+              '${sectionMetadata.sectionName} Entry ${subsections.length + 1}',
+          controllerValues: subsectionValues,
+        ));
+      }
+
+      customSectionSubsections[sectionId] = subsections;
+      print(
+          '=== DEBUG: Section $sectionId split into ${subsections.length} subsections ===');
     }
 
     // Sort custom sections by order
@@ -388,12 +430,12 @@ class CvDataService {
     print('=== DEBUG: Main section values: $mainSectionValues ===');
     print('=== DEBUG: Custom sections count: ${customSections.length} ===');
     print(
-        '=== DEBUG: Custom section controller values: $customSectionControllerValues ===');
+        '=== DEBUG: Custom section subsections: $customSectionSubsections ===');
 
     return PreloadedCvData(
       mainSectionValues: mainSectionValues,
       customSections: customSections,
-      customSectionControllerValues: customSectionControllerValues,
+      customSectionSubsections: customSectionSubsections,
     );
   }
 }

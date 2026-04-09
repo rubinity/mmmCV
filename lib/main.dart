@@ -118,17 +118,17 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       // Build custom sections from preloaded data
       if (!preloadedData.isEmpty) {
         for (final sectionMetadata in preloadedData.customSections) {
-          final controllerValues = preloadedData
-                  .customSectionControllerValues[sectionMetadata.sectionId] ??
+          final subsections = preloadedData
+                  .customSectionSubsections[sectionMetadata.sectionId] ??
               [];
           print(
-              '🔍 Building section: ${sectionMetadata.sectionName} (ID: ${sectionMetadata.sectionId}) with ${controllerValues.length} controllers');
+              '🔍 Building section: ${sectionMetadata.sectionName} (ID: ${sectionMetadata.sectionId}) with ${subsections.length} subsections');
 
           _createSectionFromPreloadedData(
             sectionMetadata.sectionType.name,
             sectionMetadata.sectionName,
             sectionMetadata.sectionId,
-            controllerValues,
+            subsections,
           );
         }
       } else {
@@ -273,12 +273,13 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     String type,
     String name,
     String sectionId,
-    List<String> controllerValues,
+    List<SubsectionData> subsections,
   ) {
-    // Create section using helper function with preloaded controller values
+    // Create section using helper function with preloaded subsections
     _createSection(type, name,
-        sectionId: sectionId, preloadedControllerValues: controllerValues);
-    print('🔍 Created section with preloaded controller values ===');
+        sectionId: sectionId, preloadedSubsections: subsections);
+    print(
+        '🔍 Created section with ${subsections.length} preloaded subsections ===');
   }
 
   @override
@@ -388,7 +389,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   // Helper function to create sections (used for both manual creation and restoration)
   custom_section.CustomSection _createSection(String type, String name,
-      {String? sectionId, List<String>? preloadedControllerValues}) {
+      {String? sectionId, List<SubsectionData>? preloadedSubsections}) {
     final sectionKey = GlobalKey<custom_section.CustomSectionState>();
     _sectionKeys[name] = sectionKey;
 
@@ -403,7 +404,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       subsectionType: sectionType,
       sectionKey: sectionKey,
       sectionId: sectionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      preloadedControllerValues: preloadedControllerValues,
+      preloadedSubsections: preloadedSubsections,
     );
 
     // Add section to list and trigger rebuild
