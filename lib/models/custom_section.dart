@@ -61,17 +61,6 @@ class Subsection {
   }
 }
 
-enum SectionType {
-  education,
-  experience,
-}
-
-enum SubsectionType {
-  generic,
-  education,
-  experience,
-}
-
 class CustomSection extends StatefulWidget {
   final String sectionName;
   final SectionType subsectionType;
@@ -130,13 +119,13 @@ class CustomSectionState extends State<CustomSection> {
     print('=== DEBUG: Created subsection: ${subsections[0]?.name} ===');
 
     // Register controllers from initial subsection
-    _registerControllers();
+    registerControllers();
     _isInitialized = true; // Mark as initialized
 
     print('=== DEBUG: State initialization completed ===');
   }
 
-  void _registerControllers() {
+  void registerControllers() {
     print('=== DEBUG: _registerControllers called ===');
     controllers.clear(); // Clear previous controllers
     for (final subsection in subsections.values) {
@@ -183,44 +172,35 @@ class CustomSectionState extends State<CustomSection> {
   Subsection _createDefaultSubsection() {
     switch (widget.subsectionType) {
       case SectionType.education:
-        return EducationSubsection(name: '${widget.sectionName} Entry 1');
-      case SectionType.experience:
-        return ExperienceSubsection(name: '${widget.sectionName} Entry 1');
-      default:
-        return Subsection(
+        return EducationSubsection(
           name: '${widget.sectionName} Entry 1',
-          fieldGroups: [],
+        );
+      case SectionType.experience:
+        return ExperienceSubsection(
+          name: '${widget.sectionName} Entry 1',
         );
     }
   }
 
   void addSubsection() {
     setState(() {
-      Subsection newSubsection;
       final newKey = subsections.length;
 
       switch (widget.subsectionType) {
         case SectionType.education:
-          newSubsection = EducationSubsection(
+          subsections[newKey] = EducationSubsection(
             name: '${widget.sectionName} Entry ${newKey + 1}',
           );
           break;
         case SectionType.experience:
-          newSubsection = ExperienceSubsection(
+          subsections[newKey] = ExperienceSubsection(
             name: '${widget.sectionName} Entry ${newKey + 1}',
-          );
-          break;
-        default:
-          newSubsection = Subsection(
-            name: '${widget.sectionName} Entry ${newKey + 1}',
-            fieldGroups: [],
           );
           break;
       }
 
-      subsections[newKey] = newSubsection;
       // Register controllers from new subsection
-      _registerControllers();
+      registerControllers();
     });
   }
 
