@@ -297,52 +297,43 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       print(
           '🔍 Restoring section: $sectionName (ID: $sectionId) with ${controllers.length} controllers ===');
 
-      // Parse subsection type using global enum
-      final subsectionType = SectionType.values.firstWhere(
-        (type) => type.name == sectionData['subsectionType'] as String,
-      );
-
-      // Create section based on type using same logic as creation
-      final sectionKey = GlobalKey<custom_section.CustomSectionState>();
-      _sectionKeys[sectionName] = sectionKey;
-
-      custom_section.CustomSection newSection = custom_section.CustomSection(
-        key: sectionKey,
-        sectionName: sectionName,
-        subsectionType: subsectionType,
-        sectionKey: sectionKey,
-        sectionId: sectionId,
-      );
-
-      _sections.add(newSection);
+      // Create section using helper function (setState is inside)
+      _createSection(sectionData['subsectionType'] as String, sectionName,
+          sectionId: sectionId);
 
       // Wait for widget to be built and then restore controller data
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (sectionKey.currentState != null) {
-          final currentState = sectionKey.currentState!;
+        final sectionKey = _sectionKeys[sectionName];
+        final currentState = sectionKey?.currentState;
+        if (currentState != null) {
           print('🔍 Found ${currentState.subsections.length} subsections ===');
 
           if (currentState.subsections.isNotEmpty) {
-            final firstSubsection = currentState.subsections[0]!;
-            print(
-                '🔍 Updating first subsection with ${controllers.length} values ===');
+            final firstSubsection = currentState.subsections[0];
+            if (firstSubsection != null) {
+              print(
+                  '🔍 Updating first subsection with ${controllers.length} values ===');
 
-            // Create new subsection with restored values using global enum
-            final updatedSubsection = subsectionType == SectionType.education
-                ? EducationSubsection(
-                    name: firstSubsection.name,
-                    restoredValues: controllers,
-                  )
-                : ExperienceSubsection(
-                    name: firstSubsection.name,
-                    restoredValues: controllers,
-                  );
+              // Create new subsection with restored values using global enum
+              final subsectionType = SectionType.values.firstWhere(
+                (type) => type.name == sectionData['subsectionType'] as String,
+              );
+              final updatedSubsection = subsectionType == SectionType.education
+                  ? EducationSubsection(
+                      name: firstSubsection.name,
+                      restoredValues: controllers,
+                    )
+                  : ExperienceSubsection(
+                      name: firstSubsection.name,
+                      restoredValues: controllers,
+                    );
 
-            // Replace the first subsection with the updated one
-            currentState.subsections[0] = updatedSubsection;
-            currentState.registerControllers();
+              // Replace the first subsection with the updated one
+              currentState.subsections[0] = updatedSubsection;
+              currentState.registerControllers();
 
-            print('🔍 Subsection updated and controllers registered ===');
+              print('🔍 Subsection updated and controllers registered ===');
+            }
           }
         }
       });
@@ -472,45 +463,53 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     }
   }
 
+  // Helper function to extract section name from type and custom name
+  String _extractSectionName(String selectedType, String customName) {
+    if (customName.isNotEmpty) {
+      return customName;
+    } else {
+      return selectedType == 'education' ? 'Education' : 'Experience';
+    }
+  }
+
+  // Helper function to create sections (used for both manual creation and restoration)
+  custom_section.CustomSection _createSection(String type, String name,
+      {String? sectionId}) {
+    final sectionKey = GlobalKey<custom_section.CustomSectionState>();
+    _sectionKeys[name] = sectionKey;
+
+    // Direct mapping from string to SectionType using global enum
+    final sectionType = SectionType.values.firstWhere(
+      (sectionType) => sectionType.name == type,
+    );
+
+    final newSection = custom_section.CustomSection(
+      key: sectionKey,
+      sectionName: name,
+      subsectionType: sectionType,
+      sectionKey: sectionKey,
+      sectionId: sectionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    );
+
+    // Add section to list and trigger rebuild
+    setState(() {
+      _sections.add(newSection);
+    });
+
+    return newSection;
+  }
+
   void _addSection() {
     // Test auto-save by calling it manually
     print('🧪 Testing auto-save before adding section...');
     _autoSaveData();
 
-    // Get the section name from the form field or use default
-    String customSectionName = _sectionNameController.text.trim();
-    String sectionName;
+    // Get the section name using helper function
+    final sectionName = _extractSectionName(
+        _selectedSectionType, _sectionNameController.text.trim());
 
-    if (customSectionName.isNotEmpty) {
-      sectionName = customSectionName;
-    } else {
-      // Use default name if custom name is empty
-      sectionName =
-          _selectedSectionType == 'education' ? 'Education' : 'Experience';
-    }
-
-    // Create appropriate section based on type
-    final sectionKey = GlobalKey<custom_section.CustomSectionState>();
-    _sectionKeys[sectionName] = sectionKey;
-
-    // Direct mapping from string to SectionType using global enum
-    final sectionType = SectionType.values.firstWhere(
-      (type) => type.name == _selectedSectionType,
-    );
-
-    custom_section.CustomSection newSection = custom_section.CustomSection(
-      key: sectionKey,
-      sectionName: sectionName,
-      subsectionType: sectionType,
-      sectionKey: sectionKey,
-      sectionId: DateTime.now()
-          .millisecondsSinceEpoch
-          .toString(), // Generate unique ID
-    );
-
-    setState(() {
-      _sections.add(newSection);
-    });
+    // Create section using helper function (setState is inside)
+    _createSection(_selectedSectionType, sectionName);
 
     // Auto-save after adding section
     _autoSaveData();
