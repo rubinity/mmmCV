@@ -436,33 +436,6 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     _autoSaveData();
   }
 
-  // Helper method to create controllers based on section type
-  List<TextEditingController> _createControllersForSection(String sectionType) {
-    switch (sectionType) {
-      case 'education':
-        return [
-          TextEditingController(), // Institution
-          TextEditingController(), // City/Country
-          TextEditingController(), // Degree
-          TextEditingController(), // Field of Study
-          TextEditingController(), // Start
-          TextEditingController(), // End
-          TextEditingController(), // Description
-        ];
-      case 'experience':
-        return [
-          TextEditingController(), // Company
-          TextEditingController(), // City/Country
-          TextEditingController(), // Job Title
-          TextEditingController(), // Start Date
-          TextEditingController(), // End Date
-          TextEditingController(), // Description
-        ];
-      default:
-        return [];
-    }
-  }
-
   // Helper function to extract section name from type and custom name
   String _extractSectionName(String selectedType, String customName) {
     if (customName.isNotEmpty) {
