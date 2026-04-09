@@ -3,6 +3,37 @@ import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import '../models/custom_section.dart' as custom_section;
 import '../models/cv_section.dart';
+import '../models/section_types.dart';
+
+// Preloaded data structure for CV restoration
+class PreloadedCvData {
+  final Map<String, String> mainSectionValues;
+  final List<CustomSectionMetadata> customSections;
+  final Map<String, List<String>> customSectionControllerValues;
+
+  PreloadedCvData({
+    required this.mainSectionValues,
+    required this.customSections,
+    required this.customSectionControllerValues,
+  });
+
+  bool get isEmpty => mainSectionValues.isEmpty && customSections.isEmpty;
+}
+
+// Metadata for custom sections
+class CustomSectionMetadata {
+  final String sectionId;
+  final String sectionName;
+  final SectionType sectionType;
+  final int order;
+
+  CustomSectionMetadata({
+    required this.sectionId,
+    required this.sectionName,
+    required this.sectionType,
+    required this.order,
+  });
+}
 
 class CvDataService {
   static Future<String> get _dataPath async {
@@ -185,23 +216,35 @@ class CvDataService {
     }
   }
 
-  /// Load CV data from CSV
-  static Future<Map<String, dynamic>> loadCvData() async {
+  /// Load CV data from CSV and return preloaded data structure
+  static Future<PreloadedCvData> loadCvData() async {
     try {
       final file = await _localFile;
       if (!await file.exists()) {
-        return {};
+        return PreloadedCvData(
+          mainSectionValues: {},
+          customSections: [],
+          customSectionControllerValues: {},
+        );
       }
 
       final content = await file.readAsString();
       if (content.isEmpty) {
-        return {};
+        return PreloadedCvData(
+          mainSectionValues: {},
+          customSections: [],
+          customSectionControllerValues: {},
+        );
       }
 
-      // Parse CSV and convert back to data structure
+      // Parse CSV and convert back to preloaded data structure
       final rows = const CsvToListConverter().convert(content);
       if (rows.isEmpty) {
-        return {};
+        return PreloadedCvData(
+          mainSectionValues: {},
+          customSections: [],
+          customSectionControllerValues: {},
+        );
       }
 
       return _convertFromCsvRows(rows);
@@ -269,71 +312,88 @@ class CvDataService {
     return csvRows;
   }
 
-  /// Convert CSV rows back to CV data structure
-  static Map<String, dynamic> _convertFromCsvRows(List<List<dynamic>> rows) {
-    final Map<String, dynamic> cvData = {};
+  /// Convert CSV rows back to PreloadedCvData structure
+  static PreloadedCvData _convertFromCsvRows(List<List<dynamic>> rows) {
+    print('=== DEBUG: Parsing CSV rows, total rows: ${rows.length} ===');
+
+    final Map<String, String> mainSectionValues = {};
+    final List<CustomSectionMetadata> customSections = [];
+    final Map<String, List<String>> customSectionControllerValues = {};
+    final Map<String, int> sectionOrderMap = {};
+    int orderCounter = 0;
 
     // Skip header row
     if (rows.length <= 1) {
-      return cvData;
+      print('=== DEBUG: No data rows to parse ===');
+      return PreloadedCvData(
+        mainSectionValues: mainSectionValues,
+        customSections: customSections,
+        customSectionControllerValues: customSectionControllerValues,
+      );
     }
-
-    final Map<String, dynamic> mainSection = {};
-    final List<Map<String, dynamic>> customSections = [];
 
     for (int i = 1; i < rows.length; i++) {
       final row = rows[i];
-      if (row.length < 5) continue;
+      if (row.length < 6) {
+        print('=== DEBUG: Row $i has less than 6 columns, skipping ===');
+        continue;
+      }
 
-      final sectionName = row[0]?.toString() ?? '';
-      final subsectionName = row[1]?.toString() ?? '';
-      final fieldGroupTitle = row[2]?.toString() ?? '';
-      final fieldLabel = row[3]?.toString() ?? '';
-      final fieldValue = row[4]?.toString() ?? '';
+      final sectionId = row[0]?.toString() ?? '';
+      final sectionName = row[1]?.toString() ?? '';
+      final sectionType = row[2]?.toString() ?? '';
+      final fieldLabel = row[4]?.toString() ?? '';
+      final fieldValue = row[5]?.toString() ?? '';
 
-      if (sectionName == 'Main Section') {
-        mainSection[fieldLabel] = fieldValue;
-      } else {
-        // Find or create custom section
-        var section = customSections.firstWhere(
-          (s) => s['sectionName'] == sectionName,
-          orElse: () => {'sectionName': sectionName, 'subsections': []},
-        );
+      print(
+          '=== DEBUG: Row $i - ID: "$sectionId", Name: "$sectionName", Type: "$sectionType", Label: "$fieldLabel", Value: "$fieldValue" ===');
 
-        // Find or create subsection
-        final subsections =
-            section['subsections'] as List<Map<String, dynamic>>;
-        var subsection = subsections.firstWhere(
-          (s) => s['name'] == subsectionName,
-          orElse: () => {'name': subsectionName, 'fieldGroups': []},
-        );
+      // Main section rows have empty sectionId and sectionName
+      if (sectionId.isEmpty && sectionName.isEmpty) {
+        mainSectionValues[fieldLabel] = fieldValue;
+        print(
+            '=== DEBUG: Added to main section: $fieldLabel = "$fieldValue" ===');
+      } else if (sectionId.isNotEmpty) {
+        // Custom section row
+        if (!sectionOrderMap.containsKey(sectionId)) {
+          sectionOrderMap[sectionId] = orderCounter++;
+          customSectionControllerValues[sectionId] = [];
 
-        // Find or create field group
-        final fieldGroups =
-            subsection['fieldGroups'] as List<Map<String, dynamic>>;
-        var fieldGroup = fieldGroups.firstWhere(
-          (fg) => fg['title'] == fieldGroupTitle,
-          orElse: () => {'title': fieldGroupTitle, 'fields': []},
-        );
+          // Parse section type from string like "SectionType.education"
+          final typeString = sectionType.split('.').last;
+          final sectionTypeEnum = SectionType.values.firstWhere(
+            (type) => type.name == typeString,
+            orElse: () => SectionType.education,
+          );
 
-        // Find or create field
-        final fields = fieldGroup['fields'] as List<Map<String, dynamic>>;
-        var field = fields.firstWhere(
-          (f) => f['label'] == fieldLabel,
-          orElse: () => {'label': fieldLabel, 'value': fieldValue},
-        );
+          customSections.add(CustomSectionMetadata(
+            sectionId: sectionId,
+            sectionName: sectionName,
+            sectionType: sectionTypeEnum,
+            order: sectionOrderMap[sectionId]!,
+          ));
+          print(
+              '=== DEBUG: Created metadata for section $sectionId (order: ${sectionOrderMap[sectionId]}) ===');
+        }
 
-        field['value'] = fieldValue;
+        // Add controller value
+        customSectionControllerValues[sectionId]!.add(fieldValue);
+        print('=== DEBUG: Added controller to custom section $sectionId ===');
       }
     }
 
-    if (mainSection.isNotEmpty) {
-      cvData['mainSection'] = mainSection;
-    }
-    if (customSections.isNotEmpty) {
-      cvData['customSections'] = customSections;
-    }
+    // Sort custom sections by order
+    customSections.sort((a, b) => a.order.compareTo(b.order));
 
-    return cvData;
+    print('=== DEBUG: Main section values: $mainSectionValues ===');
+    print('=== DEBUG: Custom sections count: ${customSections.length} ===');
+    print(
+        '=== DEBUG: Custom section controller values: $customSectionControllerValues ===');
+
+    return PreloadedCvData(
+      mainSectionValues: mainSectionValues,
+      customSections: customSections,
+      customSectionControllerValues: customSectionControllerValues,
+    );
   }
 }

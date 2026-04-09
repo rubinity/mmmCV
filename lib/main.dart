@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'models/cv_section.dart';
-import 'models/custom_section.dart' as custom_section;
+import 'models/user_data.dart';
 import 'models/education_subsection.dart';
 import 'models/experience_subsection.dart';
-import 'models/user_data.dart';
+import 'models/custom_section.dart' as custom_section;
+import 'models/cv_section.dart';
+import 'models/section_types.dart';
 import 'services/csv_service.dart';
 import 'services/cv_data_service.dart';
 import 'services/rtf_service.dart';
-import 'models/section_types.dart';
 
 void main() {
   runApp(const MmmCVApp());
@@ -39,7 +39,7 @@ class CvFormPage extends StatefulWidget {
 class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   String _selectedSectionType = 'education';
-  final MainSection _mainSection = MainSection(sectionName: 'Main Information');
+  late MainSection _mainSection;
   List<custom_section.CustomSection> _sections = [];
   Map<String, GlobalKey<custom_section.CustomSectionState>> _sectionKeys = {};
   Map<String, custom_section.CustomSection> _sectionWidgets =
@@ -55,6 +55,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _mainSection = MainSection(sectionName: 'Main Information');
     _loadUserData(); // This now handles auto-loading from CvDataService
   }
 
@@ -101,16 +102,37 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   Future<void> _loadUserData() async {
     try {
-      // Use CvDataService instead of old CsvService
-      final cvData = await CvDataService.loadCvData();
-      print('🧪 Loaded CV data: ${cvData.keys}');
+      // Load preloaded CV data structure
+      final preloadedData = await CvDataService.loadCvData();
+      print('🧪 Loaded preloaded CV data');
+      print('🧪 Main section values: ${preloadedData.mainSectionValues}');
+      print('🧪 Custom sections count: ${preloadedData.customSections.length}');
 
-      // Restore data if available
-      if (cvData.isNotEmpty) {
-        if (cvData.containsKey('mainSection')) {
-          _restoreMainSectionData(
-              cvData['mainSection'] as Map<String, dynamic>);
+      // Rebuild MainSection with preloaded values
+      _mainSection = MainSection(
+        sectionName: 'Main Information',
+        preloadedValues: preloadedData.mainSectionValues,
+      );
+      setState(() {}); // Trigger rebuild to show updated MainSection
+
+      // Build custom sections from preloaded data
+      if (!preloadedData.isEmpty) {
+        for (final sectionMetadata in preloadedData.customSections) {
+          final controllerValues = preloadedData
+                  .customSectionControllerValues[sectionMetadata.sectionId] ??
+              [];
+          print(
+              '🔍 Building section: ${sectionMetadata.sectionName} (ID: ${sectionMetadata.sectionId}) with ${controllerValues.length} controllers');
+
+          _createSectionFromPreloadedData(
+            sectionMetadata.sectionType.name,
+            sectionMetadata.sectionName,
+            sectionMetadata.sectionId,
+            controllerValues,
+          );
         }
+      } else {
+        print('🔍 No preloaded CV data found');
       }
     } catch (e) {
       print('Error loading CV data: $e');
@@ -246,98 +268,17 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     }
   }
 
-  // Restore main section data from saved data
-  void _restoreMainSectionData(Map<String, dynamic> mainSectionData) {
-    final controllers = _mainSection.allControllers;
-    print('🔍 Found ${controllers.length} controllers');
-    print('🔍 Main section data keys: ${mainSectionData.keys}');
-
-    // Map field paths to controller indices based on MainSection structure
-    final fieldMapping = {
-      'main_section.personal_info.first_name': 0, // First Name
-      'main_section.personal_info.middle_name': 1, // Middle Name
-      'main_section.personal_info.last_name': 2, // Last Name
-      'main_section.contact.email': 3, // Email
-      'main_section.contact.phone': 4, // Phone
-      'main_section.contact.city': 5, // City
-      'main_section.contact.country': 6, // Country
-      'main_section.online.website_1': 7, // Website 1
-      'main_section.online.url_1': 8, // URL 1
-      'main_section.online.website_2': 9, // Website 2
-      'main_section.online.url_2': 10, // URL 2
-      'main_section.summary.summary': 11, // Summary
-    };
-
-    // Restore each field using the mapping
-    for (final entry in mainSectionData.entries) {
-      final fieldPath = entry.key;
-      final value = entry.value;
-
-      if (fieldMapping.containsKey(fieldPath)) {
-        final controllerIndex = fieldMapping[fieldPath]!;
-        if (controllerIndex < controllers.length) {
-          controllers[controllerIndex].text = value;
-          print(
-              '🔍 Restored $fieldPath (controller $controllerIndex) with value: "$value"');
-        }
-      }
-    }
-  }
-
-  // Restore custom sections data from saved data
-  void _restoreCustomSectionsData(
-      List<Map<String, dynamic>> customSectionsData) {
-    print('🔍 Restoring ${customSectionsData.length} custom sections ===');
-
-    for (final sectionData in customSectionsData) {
-      final sectionName = sectionData['sectionName'] as String;
-      final sectionId = sectionData['sectionId'] as String?;
-      final controllers = sectionData['controllers'] as List<String>;
-
-      print(
-          '🔍 Restoring section: $sectionName (ID: $sectionId) with ${controllers.length} controllers ===');
-
-      // Create section using helper function (setState is inside)
-      _createSection(sectionData['subsectionType'] as String, sectionName,
-          sectionId: sectionId);
-
-      // Wait for widget to be built and then restore controller data
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final sectionKey = _sectionKeys[sectionName];
-        final currentState = sectionKey?.currentState;
-        if (currentState != null) {
-          print('🔍 Found ${currentState.subsections.length} subsections ===');
-
-          if (currentState.subsections.isNotEmpty) {
-            final firstSubsection = currentState.subsections[0];
-            if (firstSubsection != null) {
-              print(
-                  '🔍 Updating first subsection with ${controllers.length} values ===');
-
-              // Create new subsection with restored values using global enum
-              final subsectionType = SectionType.values.firstWhere(
-                (type) => type.name == sectionData['subsectionType'] as String,
-              );
-              final updatedSubsection = subsectionType == SectionType.education
-                  ? EducationSubsection(
-                      name: firstSubsection.name,
-                      restoredValues: controllers,
-                    )
-                  : ExperienceSubsection(
-                      name: firstSubsection.name,
-                      restoredValues: controllers,
-                    );
-
-              // Replace the first subsection with the updated one
-              currentState.subsections[0] = updatedSubsection;
-              currentState.registerControllers();
-
-              print('🔍 Subsection updated and controllers registered ===');
-            }
-          }
-        }
-      });
-    }
+  // Create section from preloaded data
+  void _createSectionFromPreloadedData(
+    String type,
+    String name,
+    String sectionId,
+    List<String> controllerValues,
+  ) {
+    // Create section using helper function with preloaded controller values
+    _createSection(type, name,
+        sectionId: sectionId, preloadedControllerValues: controllerValues);
+    print('🔍 Created section with preloaded controller values ===');
   }
 
   @override
@@ -447,7 +388,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   // Helper function to create sections (used for both manual creation and restoration)
   custom_section.CustomSection _createSection(String type, String name,
-      {String? sectionId}) {
+      {String? sectionId, List<String>? preloadedControllerValues}) {
     final sectionKey = GlobalKey<custom_section.CustomSectionState>();
     _sectionKeys[name] = sectionKey;
 
@@ -462,6 +403,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       subsectionType: sectionType,
       sectionKey: sectionKey,
       sectionId: sectionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      preloadedControllerValues: preloadedControllerValues,
     );
 
     // Add section to list and trigger rebuild

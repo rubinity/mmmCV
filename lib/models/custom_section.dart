@@ -67,6 +67,7 @@ class CustomSection extends StatefulWidget {
   final VoidCallback? onRemoveSection;
   final GlobalKey<CustomSectionState>? sectionKey;
   late final String sectionId; // Add unique section ID
+  final List<String>? preloadedControllerValues; // Preloaded controller values
 
   // Track widget instance for debugging
   final String widgetId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -78,6 +79,7 @@ class CustomSection extends StatefulWidget {
     this.onRemoveSection,
     this.sectionKey,
     String? sectionId, // Optional sectionId parameter
+    this.preloadedControllerValues, // Optional preloaded controller values
   }) {
     this.sectionId = sectionId ?? widgetId; // Use provided ID or generate one
     print(
@@ -174,10 +176,12 @@ class CustomSectionState extends State<CustomSection> {
       case SectionType.education:
         return EducationSubsection(
           name: '${widget.sectionName} Entry 1',
+          restoredValues: widget.preloadedControllerValues,
         );
       case SectionType.experience:
         return ExperienceSubsection(
           name: '${widget.sectionName} Entry 1',
+          restoredValues: widget.preloadedControllerValues,
         );
     }
   }

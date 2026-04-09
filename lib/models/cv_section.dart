@@ -279,6 +279,7 @@ class MainSection extends CvSection {
   MainSection({
     required String sectionName,
     List<Subsection>? subsections,
+    Map<String, String>? preloadedValues,
   }) : super(sectionName: sectionName, type: 'main') {
     this.subsections = subsections ??
         [
@@ -288,38 +289,95 @@ class MainSection extends CvSection {
               FieldGroup(
                 title: 'Name',
                 fields: [
-                  FieldDefinition(label: 'First Name', type: FieldType.text),
-                  FieldDefinition(label: 'Middle Name', type: FieldType.text),
-                  FieldDefinition(label: 'Last Name', type: FieldType.text),
+                  FieldDefinition(
+                    label: 'First Name',
+                    type: FieldType.text,
+                    initialValue: preloadedValues?[
+                        'main_section.personal_info.first_name'],
+                  ),
+                  FieldDefinition(
+                    label: 'Middle Name',
+                    type: FieldType.text,
+                    initialValue: preloadedValues?[
+                        'main_section.personal_info.middle_name'],
+                  ),
+                  FieldDefinition(
+                    label: 'Last Name',
+                    type: FieldType.text,
+                    initialValue: preloadedValues?[
+                        'main_section.personal_info.last_name'],
+                  ),
                 ],
               ),
               FieldGroup(
                 title: 'Contact',
                 fields: [
-                  FieldDefinition(label: 'Email', type: FieldType.email),
-                  FieldDefinition(label: 'Phone', type: FieldType.phone),
-                  FieldDefinition(label: 'City', type: FieldType.text),
-                  FieldDefinition(label: 'Country', type: FieldType.text),
+                  FieldDefinition(
+                    label: 'Email',
+                    type: FieldType.email,
+                    initialValue:
+                        preloadedValues?['main_section.contact.email'],
+                  ),
+                  FieldDefinition(
+                    label: 'Phone',
+                    type: FieldType.phone,
+                    initialValue:
+                        preloadedValues?['main_section.contact.phone'],
+                  ),
+                  FieldDefinition(
+                    label: 'City',
+                    type: FieldType.text,
+                    initialValue: preloadedValues?['main_section.contact.city'],
+                  ),
+                  FieldDefinition(
+                    label: 'Country',
+                    type: FieldType.text,
+                    initialValue:
+                        preloadedValues?['main_section.contact.country'],
+                  ),
                 ],
               ),
               FieldGroup(
                 title: 'Online',
                 fields: [
                   FieldDefinition(
-                      label: 'Website 1', type: FieldType.text, width: 150),
+                    label: 'Website 1',
+                    type: FieldType.text,
+                    width: 150,
+                    initialValue:
+                        preloadedValues?['main_section.online.website_1'],
+                  ),
                   FieldDefinition(
-                      label: 'URL 1', type: FieldType.url, width: 250),
+                    label: 'URL 1',
+                    type: FieldType.url,
+                    width: 250,
+                    initialValue: preloadedValues?['main_section.online.url_1'],
+                  ),
                   FieldDefinition(
-                      label: 'Website 2', type: FieldType.text, width: 150),
+                    label: 'Website 2',
+                    type: FieldType.text,
+                    width: 150,
+                    initialValue:
+                        preloadedValues?['main_section.online.website_2'],
+                  ),
                   FieldDefinition(
-                      label: 'URL 2', type: FieldType.url, width: 250),
+                    label: 'URL 2',
+                    type: FieldType.url,
+                    width: 250,
+                    initialValue: preloadedValues?['main_section.online.url_2'],
+                  ),
                 ],
               ),
               FieldGroup(
                 title: 'Summary',
                 fields: [
                   FieldDefinition(
-                      label: 'Summary', type: FieldType.multiline, width: 812),
+                    label: 'Summary',
+                    type: FieldType.multiline,
+                    width: 812,
+                    initialValue:
+                        preloadedValues?['main_section.summary.summary'],
+                  ),
                 ],
               ),
             ],
