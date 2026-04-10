@@ -295,16 +295,6 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Test save button (temporary)
-            ElevatedButton(
-              onPressed: () {
-                print('🧪 Manual save test...');
-                _autoSaveData();
-              },
-              child: const Text('TEST SAVE'),
-            ),
-            const SizedBox(height: 16),
-
             // Main Section
             _mainSection.build(context),
 
@@ -377,6 +367,29 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            // Print to RTF button
+            ElevatedButton(
+              onPressed: () async {
+                print('=== Generating RTF ===');
+                try {
+                  // Gather all sections
+                  final sections = <dynamic>[];
+                  sections.add(_mainSection);
+                  for (final section in _sections.values) {
+                    sections.add(section);
+                  }
+                  final rtfString = await RtfService.generateRtf(sections);
+                  print('=== RTF Generated ===');
+                  print(rtfString);
+                  print('=== End of RTF ===');
+                } catch (e) {
+                  print('=== Error generating RTF: $e ===');
+                }
+              },
+              child: const Text('PRINT TO RTF'),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
