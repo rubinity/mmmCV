@@ -377,9 +377,9 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                   // Gather all sections
                   final sections = <dynamic>[];
                   sections.add(_mainSection);
-                  // for (final section in _sections.values) {
-                  //   sections.add(section);
-                  // }
+                  for (final section in _sections.values) {
+                    sections.add(section);
+                  }
                   final rtfString = await RtfService.generateRtf(sections);
                   print('=== RTF Generated ===');
 
