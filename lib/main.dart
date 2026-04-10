@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'models/cv_section.dart';
 import 'models/custom_section.dart' as custom_section;
@@ -65,32 +66,32 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    print('=== DEBUG: dispose() called ===');
+    // print('=== DEBUG: dispose() called ===');
     _isDisposed = true; // Set disposal flag
     WidgetsBinding.instance.removeObserver(this);
 
-    print('=== DEBUG: About to auto-save BEFORE disposing controllers ===');
+    // print('=== DEBUG: About to auto-save BEFORE disposing controllers ===');
     // Save BEFORE disposing controllers
     _autoSaveData();
-    print('=== DEBUG: Auto-save completed ===');
+    // print('=== DEBUG: Auto-save completed ===');
 
     // Dispose controllers AFTER saving
     _mainSection.allControllers.forEach((controller) => controller.dispose());
     _sectionNameController.dispose();
-    print('=== DEBUG: Controllers disposed ===');
+    // print('=== DEBUG: Controllers disposed ===');
 
     super.dispose();
-    print('=== DEBUG: dispose() finished ===');
+    // print('=== DEBUG: dispose() finished ===');
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('=== DEBUG: Lifecycle state changed to: $state ===');
+    // print('=== DEBUG: Lifecycle state changed to: $state ===');
     super.didChangeAppLifecycleState(state);
 
     // Don't save if widget is disposed
     if (_isDisposed) {
-      print('=== DEBUG: Widget disposed, skipping lifecycle save ===');
+      // print('=== DEBUG: Widget disposed, skipping lifecycle save ===');
       return;
     }
 
@@ -98,9 +99,9 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         state == AppLifecycleState.detached ||
         state == AppLifecycleState.hidden ||
         state == AppLifecycleState.inactive) {
-      print('=== DEBUG: Triggering auto-save due to lifecycle state ===');
+      // print('=== DEBUG: Triggering auto-save due to lifecycle state ===');
       _autoSaveData(); // Save when app goes to background or is closed
-      print('=== DEBUG: Lifecycle auto-save completed ===');
+      // print('=== DEBUG: Lifecycle auto-save completed ===');
     }
   }
 
@@ -218,37 +219,37 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   // Auto-save data silently
   Future<void> _autoSaveData() async {
     try {
-      print('=== DEBUG: Starting auto-save ===');
-      print('=== DEBUG: Number of sections: ${_sections.length} ===');
+      // print('=== DEBUG: Starting auto-save ===');
+      // print('=== DEBUG: Number of sections: ${_sections.length} ===');
 
       // Check if controllers exist
       final controllers = _mainSection.allControllers;
-      print('=== DEBUG: Found ${controllers.length} main controllers ===');
+      // print('=== DEBUG: Found ${controllers.length} main controllers ===');
 
       // Check main controller values
-      for (int i = 0; i < controllers.length; i++) {
-        print('=== DEBUG: Main Controller $i: "${controllers[i].text}" ===');
-      }
+      // for (int i = 0; i < controllers.length; i++) {
+      //   print('=== DEBUG: Main Controller $i: "${controllers[i].text}" ===');
+      // }
 
       // Check custom sections
-      int sectionIndex = 0;
-      for (final section in _sections.values) {
-        final sectionControllers = section.allControllers;
-        print(
-            '=== DEBUG: Section $sectionIndex (${section.sectionName}): ${sectionControllers.length} controllers ===');
-        for (int j = 0; j < sectionControllers.length; j++) {
-          print(
-              '=== DEBUG: Section $sectionIndex Controller $j: "${sectionControllers[j].text}" ===');
-        }
-        sectionIndex++;
-      }
+      // int sectionIndex = 0;
+      // for (final section in _sections.values) {
+      //   final sectionControllers = section.allControllers;
+      //   print(
+      //       '=== DEBUG: Section $sectionIndex (${section.sectionName}): ${sectionControllers.length} controllers ===');
+      //   for (int j = 0; j < sectionControllers.length; j++) {
+      //     print(
+      //         '=== DEBUG: Section $sectionIndex Controller $j: "${sectionControllers[j].text}" ===');
+      //   }
+      //   sectionIndex++;
+      // }
 
       // Extract data using CvDataService
       final cvData = CvDataService.extractAllData(
         controllers,
         _sections.values.toList(),
       );
-      print('=== DEBUG: Extracted data: $cvData ===');
+      // print('=== DEBUG: Extracted data: $cvData ===');
 
       // Check if data is empty
       if (cvData.isEmpty) {
@@ -257,16 +258,16 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       }
 
       // *** SYNCHRONOUS BACKUP SAVE FIRST ***
-      print('=== DEBUG: Starting synchronous backup save ===');
+      // print('=== DEBUG: Starting synchronous backup save ===');
       CvDataService.syncSaveCvData(cvData); // Immediate synchronous save
-      print('=== DEBUG: Synchronous backup save completed ===');
+      // print('=== DEBUG: Synchronous backup save completed ===');
 
       // Also try async save (might be interrupted)
       // print('=== DEBUG: Starting async save ===');
       // await CvDataService.saveCvData(cvData);
       // print('=== DEBUG: Async save completed ===');
 
-      print('=== DEBUG: Auto-save completed successfully ===');
+      // print('=== DEBUG: Auto-save completed successfully ===');
     } catch (e, stackTrace) {
       print('=== DEBUG: Auto-save failed: $e ===');
       print('=== DEBUG: Stack trace: $stackTrace ===');
@@ -376,13 +377,21 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                   // Gather all sections
                   final sections = <dynamic>[];
                   sections.add(_mainSection);
-                  for (final section in _sections.values) {
-                    sections.add(section);
-                  }
+                  // for (final section in _sections.values) {
+                  //   sections.add(section);
+                  // }
                   final rtfString = await RtfService.generateRtf(sections);
                   print('=== RTF Generated ===');
-                  print(rtfString);
-                  print('=== End of RTF ===');
+
+                  // Save to file
+                  final outputDir =
+                      Directory('${Directory.current.path}/output');
+                  if (!await outputDir.exists()) {
+                    await outputDir.create(recursive: true);
+                  }
+                  final file = File('${outputDir.path}/cv.rtf');
+                  await file.writeAsString(rtfString);
+                  print('=== RTF saved to ${file.path} ===');
                 } catch (e) {
                   print('=== Error generating RTF: $e ===');
                 }
@@ -434,7 +443,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   custom_section.CustomSection _createSection(String type, String name,
       {String? sectionId, List<SubsectionData>? preloadedSubsections}) {
     try {
-      print('=== DEBUG: _createSection called with type=$type, name=$name ===');
+      // print('=== DEBUG: _createSection called with type=$type, name=$name ===');
       final sectionKey = GlobalKey<custom_section.CustomSectionState>();
       _sectionKeys[name] = sectionKey;
 
@@ -442,15 +451,15 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       final sectionType = SectionType.values.firstWhere(
         (sectionType) => sectionType.name == type,
       );
-      print('=== DEBUG: SectionType resolved to $sectionType ===');
+      // print('=== DEBUG: SectionType resolved to $sectionType ===');
 
       final actualSectionId =
           sectionId ?? DateTime.now().millisecondsSinceEpoch.toString();
-      print('=== DEBUG: Section ID: $actualSectionId ===');
+      // print('=== DEBUG: Section ID: $actualSectionId ===');
 
       // Create appropriate subclass based on section type
       custom_section.CustomSection newSection;
-      print('=== DEBUG: Creating section subclass for $sectionType ===');
+      // print('=== DEBUG: Creating section subclass for $sectionType ===');
       switch (sectionType) {
         case SectionType.education:
           newSection = EducationCustomSection(
@@ -503,13 +512,13 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
           );
           break;
       }
-      print('=== DEBUG: Section subclass created successfully ===');
+      // print('=== DEBUG: Section subclass created successfully ===');
 
       // Add section to map and trigger rebuild
       setState(() {
         _sections[actualSectionId] = newSection;
       });
-      print('=== DEBUG: Section added to map successfully ===');
+      // print('=== DEBUG: Section added to map successfully ===');
 
       return newSection;
     } catch (e, stackTrace) {

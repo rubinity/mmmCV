@@ -83,15 +83,15 @@ abstract class CustomSection extends StatefulWidget {
     this.allowMultipleSubsections = true, // Default: allow multiple subsections
   }) {
     this.sectionId = sectionId ?? widgetId; // Use provided ID or generate one
-    print(
-        '=== DEBUG: CustomSection widget created: $widgetId (sectionId: ${this.sectionId}) ===');
+    // print(
+    //     '=== DEBUG: CustomSection widget created: $widgetId (sectionId: ${this.sectionId}) ===');
   }
 
   // Expose controllers from state via sectionKey
   List<TextEditingController> get allControllers {
     final currentState = sectionKey?.currentState;
-    print(
-        '=== DEBUG: Widget $widgetId: State accessible: ${currentState != null} ===');
+    // print(
+    //     '=== DEBUG: Widget $widgetId: State accessible: ${currentState != null} ===');
 
     if (currentState == null) {
       print('=== DEBUG: Widget $widgetId: State not accessible ===');
@@ -99,8 +99,8 @@ abstract class CustomSection extends StatefulWidget {
     }
 
     final controllers = currentState.allControllers;
-    print(
-        '=== DEBUG: Widget $widgetId: Returning ${controllers.length} controllers ===');
+    // print(
+    //     '=== DEBUG: Widget $widgetId: Returning ${controllers.length} controllers ===');
     return controllers;
   }
 }
@@ -113,17 +113,17 @@ abstract class CustomSectionState extends State<CustomSection> {
   @override
   void initState() {
     super.initState();
-    print('=== DEBUG: CustomSectionState.initState called ===');
+    // print('=== DEBUG: CustomSectionState.initState called ===');
 
     // Create subsections from preloaded data or create default
     if (widget.preloadedSubsections != null &&
         widget.preloadedSubsections!.isNotEmpty) {
-      print(
-          '=== DEBUG: Creating ${widget.preloadedSubsections!.length} subsections from preloaded data ===');
+      // print(
+      //     '=== DEBUG: Creating ${widget.preloadedSubsections!.length} subsections from preloaded data ===');
       for (int i = 0; i < widget.preloadedSubsections!.length; i++) {
         final subsectionData = widget.preloadedSubsections![i];
         subsections[i] = createSubsectionFromData(subsectionData, i);
-        print('=== DEBUG: Created subsection: ${subsections[i]?.name} ===');
+        // print('=== DEBUG: Created subsection: ${subsections[i]?.name} ===');
       }
     } else {
       // Create initial subsection based on type
@@ -136,30 +136,30 @@ abstract class CustomSectionState extends State<CustomSection> {
     registerControllers();
     _isInitialized = true; // Mark as initialized
 
-    print('=== DEBUG: State initialization completed ===');
+    // print('=== DEBUG: State initialization completed ===');
   }
 
   Subsection createSubsectionFromData(SubsectionData data, int index);
 
   void registerControllers() {
-    print('=== DEBUG: _registerControllers called ===');
+    // print('=== DEBUG: _registerControllers called ===');
     controllers.clear(); // Clear previous controllers
     for (final subsection in subsections.values) {
-      print('=== DEBUG: Processing subsection: ${subsection.name} ===');
+      // print('=== DEBUG: Processing subsection: ${subsection.name} ===');
       for (final fieldGroup in subsection.fieldGroups) {
-        print('=== DEBUG: Processing field group: ${fieldGroup.title} ===');
+        // print('=== DEBUG: Processing field group: ${fieldGroup.title} ===');
         for (final field in fieldGroup.fields) {
           if (field.controller != null) {
-            print('=== DEBUG: Adding controller for field: ${field.label} ===');
+            // print('=== DEBUG: Adding controller for field: ${field.label} ===');
             controllers.add(field.controller!); // Add to state controllers
           } else {
-            print('=== DEBUG: Field ${field.label} has no controller ===');
+            // print('=== DEBUG: Field ${field.label} has no controller ===');
           }
         }
       }
     }
-    print(
-        '=== DEBUG: Total controllers in state: ${subsections.values.map((subsection) => subsection.allControllers).fold(0, (a, b) => a + b.length)} ===');
+    // print(
+    //     '=== DEBUG: Total controllers in state: ${subsections.values.map((subsection) => subsection.allControllers).fold(0, (a, b) => a + b.length)} ===');
   }
 
   // Expose controllers from subsections
@@ -180,8 +180,8 @@ abstract class CustomSectionState extends State<CustomSection> {
         }
       }
     }
-    print(
-        '=== DEBUG: Extracted ${controllers.length} controllers from subsections ===');
+    // print(
+    //     '=== DEBUG: Extracted ${controllers.length} controllers from subsections ===');
     return controllers;
   }
 

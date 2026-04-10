@@ -110,15 +110,15 @@ class CvDataService {
     final List<Map<String, dynamic>> sectionsData = [];
 
     for (final section in sections) {
-      print('=== DEBUG: Processing section: ${section.sectionName} ===');
+      // print('=== DEBUG: Processing section: ${section.sectionName} ===');
 
       // Get controllers directly from state using the controllers field
       final currentState = section.sectionKey?.currentState;
       final controllers =
           currentState?.controllers ?? []; // Use direct controllers field
 
-      print(
-          '=== DEBUG: Found ${controllers.length} controllers for section ===');
+      // print(
+      //     '=== DEBUG: Found ${controllers.length} controllers for section ===');
 
       if (controllers.isNotEmpty) {
         final sectionData = {
@@ -129,10 +129,10 @@ class CvDataService {
               controllers.map((controller) => controller.text).toList(),
         };
         sectionsData.add(sectionData);
-        print(
-            '=== DEBUG: Section data extracted: ${sectionData['controllers']} ===');
+        // print(
+        //     '=== DEBUG: Section data extracted: ${sectionData['controllers']} ===');
       } else {
-        print('=== DEBUG: No controllers found for section ===');
+        // print('=== DEBUG: No controllers found for section ===');
       }
     }
 
@@ -221,7 +221,7 @@ class CvDataService {
       final file = File('${Directory.current.path}/data/cv_data.csv');
       file.writeAsStringSync(csv); // Synchronous write
 
-      print('Synchronous save completed - data written to disk');
+      // print('Synchronous save completed - data written to disk');
     } catch (e) {
       print('Synchronous save failed: $e');
     }
@@ -303,8 +303,8 @@ class CvDataService {
         final subsectionType = section['subsectionType'] as String;
         final controllers = section['controllers'] as List<String>;
 
-        print(
-            '=== DEBUG: Saving section: $sectionName (ID: $sectionId, Type: $subsectionType) ===');
+        // print(
+        //     '=== DEBUG: Saving section: $sectionName (ID: $sectionId, Type: $subsectionType) ===');
 
         // Add each controller value as a row with sectionId and type
         for (int i = 0; i < controllers.length; i++) {
@@ -325,7 +325,7 @@ class CvDataService {
 
   /// Convert CSV rows back to PreloadedCvData structure
   static PreloadedCvData _convertFromCsvRows(List<List<dynamic>> rows) {
-    print('=== DEBUG: Parsing CSV rows, total rows: ${rows.length} ===');
+    // print('=== DEBUG: Parsing CSV rows, total rows: ${rows.length} ===');
 
     final Map<String, String> mainSectionValues = {};
     final List<CustomSectionMetadata> customSections = [];
@@ -336,7 +336,7 @@ class CvDataService {
 
     // Skip header row
     if (rows.length <= 1) {
-      print('=== DEBUG: No data rows to parse ===');
+      // print('=== DEBUG: No data rows to parse ===');
       return PreloadedCvData(
         mainSectionValues: mainSectionValues,
         customSections: customSections,
@@ -347,7 +347,7 @@ class CvDataService {
     for (int i = 1; i < rows.length; i++) {
       final row = rows[i];
       if (row.length < 6) {
-        print('=== DEBUG: Row $i has less than 6 columns, skipping ===');
+        // print('=== DEBUG: Row $i has less than 6 columns, skipping ===');
         continue;
       }
 
@@ -357,14 +357,14 @@ class CvDataService {
       final fieldLabel = row[4]?.toString() ?? '';
       final fieldValue = row[5]?.toString() ?? '';
 
-      print(
-          '=== DEBUG: Row $i - ID: "$sectionId", Name: "$sectionName", Type: "$sectionType", Label: "$fieldLabel", Value: "$fieldValue" ===');
+      // print(
+      //     '=== DEBUG: Row $i - ID: "$sectionId", Name: "$sectionName", Type: "$sectionType", Label: "$fieldLabel", Value: "$fieldValue" ===');
 
       // Main section rows have empty sectionId and sectionName
       if (sectionId.isEmpty && sectionName.isEmpty) {
         mainSectionValues[fieldLabel] = fieldValue;
-        print(
-            '=== DEBUG: Added to main section: $fieldLabel = "$fieldValue" ===');
+        // print(
+        //     '=== DEBUG: Added to main section: $fieldLabel = "$fieldValue" ===');
       } else if (sectionId.isNotEmpty) {
         // Custom section row
         if (!sectionOrderMap.containsKey(sectionId)) {
@@ -384,13 +384,13 @@ class CvDataService {
             sectionType: sectionTypeEnum,
             order: sectionOrderMap[sectionId]!,
           ));
-          print(
-              '=== DEBUG: Created metadata for section $sectionId (order: ${sectionOrderMap[sectionId]}) ===');
+          // print(
+          //     '=== DEBUG: Created metadata for section $sectionId (order: ${sectionOrderMap[sectionId]}) ===');
         }
 
         // Add controller value
         sectionControllerValues[sectionId]!.add(fieldValue);
-        print('=== DEBUG: Added controller to custom section $sectionId ===');
+        // print('=== DEBUG: Added controller to custom section $sectionId ===');
       }
     }
 
@@ -425,17 +425,17 @@ class CvDataService {
       }
 
       customSectionSubsections[sectionId] = subsections;
-      print(
-          '=== DEBUG: Section $sectionId split into ${subsections.length} subsections ===');
+      // print(
+      //     '=== DEBUG: Section $sectionId split into ${subsections.length} subsections ===');
     }
 
     // Sort custom sections by order
     customSections.sort((a, b) => a.order.compareTo(b.order));
 
-    print('=== DEBUG: Main section values: $mainSectionValues ===');
-    print('=== DEBUG: Custom sections count: ${customSections.length} ===');
-    print(
-        '=== DEBUG: Custom section subsections: $customSectionSubsections ===');
+    // print('=== DEBUG: Main section values: $mainSectionValues ===');
+    // print('=== DEBUG: Custom sections count: ${customSections.length} ===');
+    // print(
+    //     '=== DEBUG: Custom section subsections: $customSectionSubsections ===');
 
     return PreloadedCvData(
       mainSectionValues: mainSectionValues,

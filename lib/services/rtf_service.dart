@@ -3,60 +3,65 @@
 class RtfService {
   // static Future<String> generateRtf(List<CvSection> sections) async { // TODO: Fix CvSection type
   static Future<String> generateRtf(List<dynamic> sections) async {
-    // Temporary fix
     final buffer = StringBuffer();
 
-    buffer.writeln('{\\rtf1\\ansi\\ansicpg1254');
-    buffer.writeln('{\\fonttbl\\f0\\fswiss\\fcharset0\\fprq2');
+    // RTF Header
+    buffer.writeln('{\\rtf1\\ansi\\ansicpg1252\\deff0');
 
-    for (final section in sections) {
-      buffer.writeln('{\\pard\\plain\\f0\\fs24');
-      buffer.writeln('\\qc');
+    // Font table
+    buffer.writeln('{\\fonttbl{\\f0\\fswiss Arial;}}');
 
-      // Add section title
-      buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
-      buffer.writeln('${section.sectionName}');
-      buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
+    // Document settings
+    buffer.writeln('{\\colortbl;\\red0\\green0\\blue0;}');
+    buffer.writeln('\\viewkind4\\uc1\\pard\\f0\\fs24');
 
-      // Add section content
-      final sectionMap = section.toMap();
-      if (sectionMap.containsKey('subsections')) {
-        final subsections = sectionMap['subsections'] as List;
-        for (final subsection in subsections) {
-          buffer.writeln('{\\pard\\plain\\f0\\fs24');
-          buffer.writeln('\\qc');
-          buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
-          buffer.writeln('${subsection['name']}');
-          buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
+    // Content
+    if (sections.isEmpty) {
+      buffer.writeln('Empty CV');
+    } else {
+      for (final section in sections) {
+        // Section title (bold)
+        buffer.writeln('{\\b ${section.sectionName}\\b0}\\par');
 
-          if (subsection.containsKey('fieldGroups')) {
-            final fieldGroups = subsection['fieldGroups'] as List;
-            for (final group in fieldGroups) {
-              buffer.writeln('{\\pard\\plain\\f0\\fs24');
-              buffer.writeln('\\qc');
-              buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
-              buffer.writeln('${group['title']}');
-              buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
+        // Add section content
+        try {
+          final sectionMap = section.toMap();
+          if (sectionMap.containsKey('subsections')) {
+            final subsections = sectionMap['subsections'] as List;
+            for (final subsection in subsections) {
+              // Subsection name
+              buffer.writeln('${subsection['name']}\\par');
 
-              if (group.containsKey('fields')) {
-                final fields = group['fields'] as List;
-                for (final field in fields) {
-                  buffer.writeln('{\\pard\\plain\\f0\\fs24');
-                  buffer.writeln('\\qc');
-                  buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
-                  buffer.writeln('${field['label']}');
-                  buffer.writeln('{\\fs24\\b\\i0\\fs20\\b\\i0}');
+              if (subsection.containsKey('fieldGroups')) {
+                final fieldGroups = subsection['fieldGroups'] as List;
+                for (final group in fieldGroups) {
+                  // Field group title
+                  buffer.writeln('{\\b ${group['title']}\\b0}\\par');
+
+                  if (group.containsKey('fields')) {
+                    final fields = group['fields'] as List;
+                    for (final field in fields) {
+                      // Field label and value
+                      final label = field['label'] as String?;
+                      final value = field['value'] as String?;
+                      if (label != null && label.isNotEmpty) {
+                        buffer.writeln('$label: ${value ?? ''}\\par');
+                      }
+                    }
+                  }
                 }
               }
             }
           }
+        } catch (e) {
+          // Skip if section doesn't support toMap()
         }
-      }
 
-      buffer.writeln('{\\pard}');
-      buffer.writeln('}');
+        buffer.writeln('\\par');
+      }
     }
 
+    // Close document
     buffer.writeln('}');
 
     return buffer.toString();
