@@ -395,7 +395,7 @@ class CvDataService {
     }
 
     // Convert controller values to subsections
-    // Education subsections typically have 7 fields, Experience have 6 fields, Projects have 4 fields
+    // Education subsections typically have 7 fields, Experience have 6 fields, Projects have 4 fields, Simplest has 1 field, Languages has 2 fields
     for (final entry in sectionControllerValues.entries) {
       final sectionId = entry.key;
       final controllerValues = entry.value;
@@ -406,6 +406,8 @@ class CvDataService {
         SectionType.education => 7,
         SectionType.experience => 6,
         SectionType.projects => 4,
+        SectionType.simplest => 1,
+        SectionType.languages => 2,
       };
       final subsections = <SubsectionData>[];
 

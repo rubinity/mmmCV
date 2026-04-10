@@ -68,14 +68,19 @@ class FieldDefinition {
         return Expanded(
           flex: 1,
           child: DropdownButtonFormField<String>(
-            value: initialValue,
+            value: controller?.text ?? initialValue,
             decoration: InputDecoration(
               labelText: label,
               border: const OutlineInputBorder(),
               prefixIcon: const Icon(Icons.category),
             ),
             items: dropdownItems,
-            onChanged: onChanged,
+            onChanged: (value) {
+              if (controller != null) {
+                controller!.text = value ?? '';
+              }
+              onChanged?.call(value);
+            },
           ),
         );
       case FieldType.button:
@@ -193,7 +198,7 @@ class FieldGroup {
   List<TextEditingController> get allControllers {
     final controllers = <TextEditingController>[];
     for (final field in fields) {
-      if (field.type != FieldType.button && field.type != FieldType.dropdown) {
+      if (field.type != FieldType.button) {
         controllers.add(field.effectiveController);
       }
     }

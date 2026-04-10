@@ -67,6 +67,7 @@ abstract class CustomSection extends StatefulWidget {
   final GlobalKey<CustomSectionState>? sectionKey;
   late final String sectionId; // Add unique section ID
   final List<SubsectionData>? preloadedSubsections; // Preloaded subsections
+  final bool allowMultipleSubsections; // Allow multiple subsections
 
   // Track widget instance for debugging
   final String widgetId = DateTime.now().millisecondsSinceEpoch.toString();
@@ -79,6 +80,7 @@ abstract class CustomSection extends StatefulWidget {
     this.sectionKey,
     String? sectionId, // Optional sectionId parameter
     this.preloadedSubsections, // Optional preloaded subsections
+    this.allowMultipleSubsections = true, // Default: allow multiple subsections
   }) {
     this.sectionId = sectionId ?? widgetId; // Use provided ID or generate one
     print(
@@ -304,10 +306,11 @@ abstract class CustomSectionState extends State<CustomSection> {
                 ],
               );
             }).toList(),
-            ElevatedButton(
-              onPressed: () => addSubsection(),
-              child: const Text('Add Entry'),
-            ),
+            if (widget.allowMultipleSubsections)
+              ElevatedButton(
+                onPressed: () => addSubsection(),
+                child: const Text('Add Entry'),
+              ),
           ],
         ),
       ),

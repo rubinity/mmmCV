@@ -4,6 +4,8 @@ import 'models/custom_section.dart' as custom_section;
 import 'models/education_custom_section.dart';
 import 'models/experience_custom_section.dart';
 import 'models/projects_custom_section.dart';
+import 'models/simplest_custom_section.dart';
+import 'models/language_custom_section.dart';
 import 'models/section_types.dart';
 import 'models/user_data.dart';
 import 'services/csv_service.dart';
@@ -341,6 +343,14 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                               value: 'projects',
                               child: Text('Projects'),
                             ),
+                            DropdownMenuItem(
+                              value: 'simplest',
+                              child: Text('Simplest'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'languages',
+                              child: Text('Languages'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -397,6 +407,10 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
           return 'Experience';
         case 'projects':
           return 'Projects';
+        case 'simplest':
+          return 'Title';
+        case 'languages':
+          return 'Languages';
         default:
           return selectedType;
       }
@@ -406,58 +420,92 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   // Helper function to create sections (used for both manual creation and restoration)
   custom_section.CustomSection _createSection(String type, String name,
       {String? sectionId, List<SubsectionData>? preloadedSubsections}) {
-    final sectionKey = GlobalKey<custom_section.CustomSectionState>();
-    _sectionKeys[name] = sectionKey;
+    try {
+      print('=== DEBUG: _createSection called with type=$type, name=$name ===');
+      final sectionKey = GlobalKey<custom_section.CustomSectionState>();
+      _sectionKeys[name] = sectionKey;
 
-    // Direct mapping from string to SectionType using global enum
-    final sectionType = SectionType.values.firstWhere(
-      (sectionType) => sectionType.name == type,
-    );
+      // Direct mapping from string to SectionType using global enum
+      final sectionType = SectionType.values.firstWhere(
+        (sectionType) => sectionType.name == type,
+      );
+      print('=== DEBUG: SectionType resolved to $sectionType ===');
 
-    final actualSectionId =
-        sectionId ?? DateTime.now().millisecondsSinceEpoch.toString();
+      final actualSectionId =
+          sectionId ?? DateTime.now().millisecondsSinceEpoch.toString();
+      print('=== DEBUG: Section ID: $actualSectionId ===');
 
-    // Create appropriate subclass based on section type
-    custom_section.CustomSection newSection;
-    switch (sectionType) {
-      case SectionType.education:
-        newSection = EducationCustomSection(
-          key: sectionKey,
-          sectionName: name,
-          sectionKey: sectionKey,
-          sectionId: actualSectionId,
-          preloadedSubsections: preloadedSubsections,
-          onRemoveSection: () => _removeSectionById(actualSectionId),
-        );
-        break;
-      case SectionType.experience:
-        newSection = ExperienceCustomSection(
-          key: sectionKey,
-          sectionName: name,
-          sectionKey: sectionKey,
-          sectionId: actualSectionId,
-          preloadedSubsections: preloadedSubsections,
-          onRemoveSection: () => _removeSectionById(actualSectionId),
-        );
-        break;
-      case SectionType.projects:
-        newSection = ProjectsCustomSection(
-          key: sectionKey,
-          sectionName: name,
-          sectionKey: sectionKey,
-          sectionId: actualSectionId,
-          preloadedSubsections: preloadedSubsections,
-          onRemoveSection: () => _removeSectionById(actualSectionId),
-        );
-        break;
+      // Create appropriate subclass based on section type
+      custom_section.CustomSection newSection;
+      print('=== DEBUG: Creating section subclass for $sectionType ===');
+      switch (sectionType) {
+        case SectionType.education:
+          newSection = EducationCustomSection(
+            key: sectionKey,
+            sectionName: name,
+            sectionKey: sectionKey,
+            sectionId: actualSectionId,
+            preloadedSubsections: preloadedSubsections,
+            onRemoveSection: () => _removeSectionById(actualSectionId),
+          );
+          break;
+        case SectionType.experience:
+          newSection = ExperienceCustomSection(
+            key: sectionKey,
+            sectionName: name,
+            sectionKey: sectionKey,
+            sectionId: actualSectionId,
+            preloadedSubsections: preloadedSubsections,
+            onRemoveSection: () => _removeSectionById(actualSectionId),
+          );
+          break;
+        case SectionType.projects:
+          newSection = ProjectsCustomSection(
+            key: sectionKey,
+            sectionName: name,
+            sectionKey: sectionKey,
+            sectionId: actualSectionId,
+            preloadedSubsections: preloadedSubsections,
+            onRemoveSection: () => _removeSectionById(actualSectionId),
+          );
+          break;
+        case SectionType.simplest:
+          newSection = SimplestCustomSection(
+            key: sectionKey,
+            sectionName: name,
+            sectionKey: sectionKey,
+            sectionId: actualSectionId,
+            preloadedSubsections: preloadedSubsections,
+            onRemoveSection: () => _removeSectionById(actualSectionId),
+          );
+          break;
+        case SectionType.languages:
+          newSection = LanguageCustomSection(
+            key: sectionKey,
+            sectionName: name,
+            sectionKey: sectionKey,
+            sectionId: actualSectionId,
+            preloadedSubsections: preloadedSubsections,
+            onRemoveSection: () => _removeSectionById(actualSectionId),
+          );
+          break;
+      }
+      print('=== DEBUG: Section subclass created successfully ===');
+
+      // Add section to map and trigger rebuild
+      setState(() {
+        _sections[actualSectionId] = newSection;
+      });
+      print('=== DEBUG: Section added to map successfully ===');
+
+      return newSection;
+    } catch (e, stackTrace) {
+      print('=== ERROR: Failed to create section ===');
+      print('=== ERROR: Type: $type, Name: $name ===');
+      print('=== ERROR: Exception: $e ===');
+      print('=== ERROR: Stack trace: $stackTrace ===');
+      rethrow;
     }
-
-    // Add section to map and trigger rebuild
-    setState(() {
-      _sections[actualSectionId] = newSection;
-    });
-
-    return newSection;
   }
 
   void _addSection() {
