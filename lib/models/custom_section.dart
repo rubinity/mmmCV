@@ -265,6 +265,7 @@ class CustomSectionState extends State<CustomSection> {
         final above = subsections[key - 1]!;
         subsections[key] = above;
         subsections[key - 1] = current;
+        registerControllers(); // Re-collect controllers in new order
       });
     }
   }
@@ -278,6 +279,7 @@ class CustomSectionState extends State<CustomSection> {
         final below = subsections[key + 1]!;
         subsections[key] = below;
         subsections[key + 1] = current;
+        registerControllers(); // Re-collect controllers in new order
       });
     }
   }
