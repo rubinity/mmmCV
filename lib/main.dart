@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'models/user_data.dart';
-import 'models/education_subsection.dart';
-import 'models/experience_subsection.dart';
-import 'models/custom_section.dart' as custom_section;
 import 'models/cv_section.dart';
+import 'models/custom_section.dart' as custom_section;
+import 'models/education_custom_section.dart';
+import 'models/experience_custom_section.dart';
+import 'models/projects_custom_section.dart';
 import 'models/section_types.dart';
+import 'models/user_data.dart';
 import 'services/csv_service.dart';
-import 'services/cv_data_service.dart';
 import 'services/rtf_service.dart';
+import 'services/cv_data_service.dart';
 
 void main() {
   runApp(const MmmCVApp());
@@ -336,6 +337,10 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
                               value: 'experience',
                               child: Text('Experience'),
                             ),
+                            DropdownMenuItem(
+                              value: 'projects',
+                              child: Text('Projects'),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() {
@@ -385,7 +390,16 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     if (customName.isNotEmpty) {
       return customName;
     } else {
-      return selectedType == 'education' ? 'Education' : 'Experience';
+      switch (selectedType) {
+        case 'education':
+          return 'Education';
+        case 'experience':
+          return 'Experience';
+        case 'projects':
+          return 'Projects';
+        default:
+          return selectedType;
+      }
     }
   }
 
@@ -403,15 +417,40 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     final actualSectionId =
         sectionId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
-    final newSection = custom_section.CustomSection(
-      key: sectionKey,
-      sectionName: name,
-      subsectionType: sectionType,
-      sectionKey: sectionKey,
-      sectionId: actualSectionId,
-      preloadedSubsections: preloadedSubsections,
-      onRemoveSection: () => _removeSectionById(actualSectionId),
-    );
+    // Create appropriate subclass based on section type
+    custom_section.CustomSection newSection;
+    switch (sectionType) {
+      case SectionType.education:
+        newSection = EducationCustomSection(
+          key: sectionKey,
+          sectionName: name,
+          sectionKey: sectionKey,
+          sectionId: actualSectionId,
+          preloadedSubsections: preloadedSubsections,
+          onRemoveSection: () => _removeSectionById(actualSectionId),
+        );
+        break;
+      case SectionType.experience:
+        newSection = ExperienceCustomSection(
+          key: sectionKey,
+          sectionName: name,
+          sectionKey: sectionKey,
+          sectionId: actualSectionId,
+          preloadedSubsections: preloadedSubsections,
+          onRemoveSection: () => _removeSectionById(actualSectionId),
+        );
+        break;
+      case SectionType.projects:
+        newSection = ProjectsCustomSection(
+          key: sectionKey,
+          sectionName: name,
+          sectionKey: sectionKey,
+          sectionId: actualSectionId,
+          preloadedSubsections: preloadedSubsections,
+          onRemoveSection: () => _removeSectionById(actualSectionId),
+        );
+        break;
+    }
 
     // Add section to map and trigger rebuild
     setState(() {

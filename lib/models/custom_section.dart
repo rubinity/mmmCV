@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'cv_section.dart';
-import 'education_subsection.dart';
-import 'experience_subsection.dart';
 import 'section_types.dart';
 import '../services/cv_data_service.dart' show SubsectionData;
 
@@ -62,7 +60,7 @@ class Subsection {
   }
 }
 
-class CustomSection extends StatefulWidget {
+abstract class CustomSection extends StatefulWidget {
   final String sectionName;
   final SectionType subsectionType;
   final VoidCallback? onRemoveSection;
@@ -103,12 +101,9 @@ class CustomSection extends StatefulWidget {
         '=== DEBUG: Widget $widgetId: Returning ${controllers.length} controllers ===');
     return controllers;
   }
-
-  @override
-  State<CustomSection> createState() => CustomSectionState();
 }
 
-class CustomSectionState extends State<CustomSection> {
+abstract class CustomSectionState extends State<CustomSection> {
   Map<int, Subsection> subsections = {};
   List<TextEditingController> controllers = []; // Store controllers in state
   bool _isInitialized = false; // Track initialization state
@@ -125,12 +120,12 @@ class CustomSectionState extends State<CustomSection> {
           '=== DEBUG: Creating ${widget.preloadedSubsections!.length} subsections from preloaded data ===');
       for (int i = 0; i < widget.preloadedSubsections!.length; i++) {
         final subsectionData = widget.preloadedSubsections![i];
-        subsections[i] = _createSubsectionFromData(subsectionData, i);
+        subsections[i] = createSubsectionFromData(subsectionData, i);
         print('=== DEBUG: Created subsection: ${subsections[i]?.name} ===');
       }
     } else {
       // Create initial subsection based on type
-      subsections[0] = _createDefaultSubsection();
+      subsections[0] = createDefaultSubsection();
       print(
           '=== DEBUG: Created default subsection: ${subsections[0]?.name} ===');
     }
@@ -142,20 +137,7 @@ class CustomSectionState extends State<CustomSection> {
     print('=== DEBUG: State initialization completed ===');
   }
 
-  Subsection _createSubsectionFromData(SubsectionData data, int index) {
-    switch (widget.subsectionType) {
-      case SectionType.education:
-        return EducationSubsection(
-          name: data.name,
-          restoredValues: data.controllerValues,
-        );
-      case SectionType.experience:
-        return ExperienceSubsection(
-          name: data.name,
-          restoredValues: data.controllerValues,
-        );
-    }
-  }
+  Subsection createSubsectionFromData(SubsectionData data, int index);
 
   void registerControllers() {
     print('=== DEBUG: _registerControllers called ===');
@@ -201,46 +183,9 @@ class CustomSectionState extends State<CustomSection> {
     return controllers;
   }
 
-  Subsection _createDefaultSubsection() {
-    switch (widget.subsectionType) {
-      case SectionType.education:
-        return EducationSubsection(
-          name: '${widget.sectionName} Entry 1',
-          restoredValues: widget.preloadedSubsections?.isNotEmpty == true
-              ? widget.preloadedSubsections!.first.controllerValues
-              : null,
-        );
-      case SectionType.experience:
-        return ExperienceSubsection(
-          name: '${widget.sectionName} Entry 1',
-          restoredValues: widget.preloadedSubsections?.isNotEmpty == true
-              ? widget.preloadedSubsections!.first.controllerValues
-              : null,
-        );
-    }
-  }
+  Subsection createDefaultSubsection();
 
-  void addSubsection() {
-    setState(() {
-      final newKey = subsections.length;
-
-      switch (widget.subsectionType) {
-        case SectionType.education:
-          subsections[newKey] = EducationSubsection(
-            name: '${widget.sectionName} Entry ${newKey + 1}',
-          );
-          break;
-        case SectionType.experience:
-          subsections[newKey] = ExperienceSubsection(
-            name: '${widget.sectionName} Entry ${newKey + 1}',
-          );
-          break;
-      }
-
-      // Register controllers from new subsection
-      registerControllers();
-    });
-  }
+  void addSubsection();
 
   void removeSubsection(int key) {
     setState(() {

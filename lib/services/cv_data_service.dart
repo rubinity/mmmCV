@@ -395,15 +395,18 @@ class CvDataService {
     }
 
     // Convert controller values to subsections
-    // Education subsections typically have 7 fields, Experience have 6 fields
+    // Education subsections typically have 7 fields, Experience have 6 fields, Projects have 4 fields
     for (final entry in sectionControllerValues.entries) {
       final sectionId = entry.key;
       final controllerValues = entry.value;
       final sectionMetadata =
           customSections.firstWhere((s) => s.sectionId == sectionId);
 
-      final fieldsPerSubsection =
-          sectionMetadata.sectionType == SectionType.education ? 7 : 6;
+      final fieldsPerSubsection = switch (sectionMetadata.sectionType) {
+        SectionType.education => 7,
+        SectionType.experience => 6,
+        SectionType.projects => 4,
+      };
       final subsections = <SubsectionData>[];
 
       for (int i = 0; i < controllerValues.length; i += fieldsPerSubsection) {
