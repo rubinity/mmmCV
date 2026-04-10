@@ -60,7 +60,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _mainSection = MainSection(sectionName: 'Main Information');
+    _mainSection = MainSection(sectionName: 'Personal Information');
     _loadUserData(); // This now handles auto-loading from CvDataService
   }
 
@@ -115,7 +115,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
       // Rebuild MainSection with preloaded values
       _mainSection = MainSection(
-        sectionName: 'Main Information',
+        sectionName: 'Personal Information',
         preloadedValues: preloadedData.mainSectionValues,
       );
       setState(() {}); // Trigger rebuild to show updated MainSection
