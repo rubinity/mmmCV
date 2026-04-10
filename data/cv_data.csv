@@ -2,15 +2,15 @@ Section ID,Section Name,Section Type,Field Group,Field Label,Field Value
 ,,,,main_section.personal_info.first_name,Alice
 ,,,,main_section.personal_info.middle_name,Jane
 ,,,,main_section.personal_info.last_name,Doe
-,,,,main_section.contact.email,
-,,,,main_section.contact.phone,
-,,,,main_section.contact.city,
-,,,,main_section.contact.country,
-,,,,main_section.online.website_1,
-,,,,main_section.online.url_1,
+,,,,main_section.contact.email,my@gmail.com
+,,,,main_section.contact.phone,2424234324
+,,,,main_section.contact.city,Heilbronn
+,,,,main_section.contact.country,Germany
+,,,,main_section.online.website_1,goo
+,,,,main_section.online.url_1,google.com
 ,,,,main_section.online.website_2,
 ,,,,main_section.online.url_2,
-,,,,main_section.summary.summary,
+,,,,main_section.summary.summary,"With x years of [x industry] experience across [x sectors, types of companies, and/or fields], I am passionate about [your USP - what is your ""thing""?]. [2 strong and thoughtful - never generic - adjectives], I look forward to applying my skills in [1-2 core competencies of the role you're applying to] to [mission/vision of the company you're applying to]."
 1775818804295,Education,SectionType.education,Field 1,Controller 1,erwrerewrere
 1775818804295,Education,SectionType.education,Field 2,Controller 2,
 1775818804295,Education,SectionType.education,Field 3,Controller 3,

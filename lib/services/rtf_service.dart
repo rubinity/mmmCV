@@ -1,4 +1,5 @@
 // import 'package:mmmcv/models/cv_section.dart'; // TODO: Fix CvSection import
+import 'package:flutter/material.dart';
 
 class RtfService {
   // static Future<String> generateRtf(List<CvSection> sections) async { // TODO: Fix CvSection type
@@ -16,58 +17,10 @@ class RtfService {
 
     // Content
     if (sections.isEmpty) {
-      buffer.writeln('{\\pard\\plain\\f0\\fs24');
       buffer.writeln('Empty CV');
-      buffer.writeln('}');
     } else {
       for (final section in sections) {
-        buffer.writeln('{\\pard\\plain\\f0\\fs24');
-        buffer.writeln('\\qc');
-
-        // Section title (bold)
-        buffer.writeln('{\\b ${section.sectionName}\\b0}');
-        buffer.writeln('}');
-
-        // Add section content
-        try {
-          final sectionMap = section.toMap();
-          if (sectionMap.containsKey('subsections')) {
-            final subsections = sectionMap['subsections'] as List;
-            for (final subsection in subsections) {
-              buffer.writeln('{\\pard\\plain\\f0\\fs24');
-              buffer.writeln('\\qc');
-              buffer.writeln('${subsection['name']}');
-              buffer.writeln('}');
-
-              if (subsection.containsKey('fieldGroups')) {
-                final fieldGroups = subsection['fieldGroups'] as List;
-                for (final group in fieldGroups) {
-                  buffer.writeln('{\\pard\\plain\\f0\\fs24');
-                  buffer.writeln('\\qc');
-                  buffer.writeln('{\\b ${group['title']}\\b0}');
-                  buffer.writeln('}');
-
-                  if (group.containsKey('fields')) {
-                    final fields = group['fields'] as List;
-                    for (final field in fields) {
-                      buffer.writeln('{\\pard\\plain\\f0\\fs24');
-                      buffer.writeln('\\qc');
-                      // Field label and value
-                      final label = field['label'] as String?;
-                      final value = field['value'] as String?;
-                      if (label != null && label.isNotEmpty) {
-                        buffer.writeln('$label: ${value ?? ''}');
-                      }
-                      buffer.writeln('}');
-                    }
-                  }
-                }
-              }
-            }
-          }
-        } catch (e) {
-          // Skip if section doesn't support toMap()
-        }
+        _writeMainSectionRtf(buffer, section);
       }
     }
 
@@ -75,5 +28,99 @@ class RtfService {
     buffer.writeln('}');
 
     return buffer.toString();
+  }
+
+  static void _writeMainSectionRtf(StringBuffer buffer, dynamic mainSection) {
+    final controllers =
+        mainSection.allControllers as List<TextEditingController>;
+
+    // Extract name values from controllers (order matches field definition order)
+    // First Name, Middle Name, Last Name are first 3 controllers
+    String firstName = controllers.length > 0 ? controllers[0].text : '';
+    String middleName = controllers.length > 1 ? controllers[1].text : '';
+    String lastName = controllers.length > 2 ? controllers[2].text : '';
+
+    // First line: full name (Arial 12, bold, centered)
+    buffer.writeln('{\\pard\\plain\\f0\\fs24\\qc\\b');
+    String fullName = '$firstName';
+    if (middleName.isNotEmpty) {
+      fullName += ' $middleName';
+    }
+    fullName += ' $lastName';
+    buffer.writeln(fullName);
+    buffer.writeln('}\\par');
+
+    // Contact information line (Arial 11, centered, not bold)
+    buffer.writeln('{\\pard\\plain\\f0\\fs22\\qc');
+
+    List<String> parts = [];
+
+    // Email
+    if (controllers.length > 3 && controllers[3].text.isNotEmpty) {
+      parts.add(controllers[3].text);
+    }
+
+    // Phone
+    if (controllers.length > 4 && controllers[4].text.isNotEmpty) {
+      parts.add(controllers[4].text);
+    }
+
+    // City, Country
+    String cityCountry = '';
+    if (controllers.length > 5 && controllers[5].text.isNotEmpty) {
+      cityCountry = controllers[5].text;
+    }
+    if (controllers.length > 6 && controllers[6].text.isNotEmpty) {
+      if (cityCountry.isNotEmpty) {
+        cityCountry += ', ${controllers[6].text}';
+      } else {
+        cityCountry = controllers[6].text;
+      }
+    }
+    if (cityCountry.isNotEmpty) {
+      parts.add(cityCountry);
+    }
+
+    // Website 1 (hyperlink)
+    if (controllers.length > 7 && controllers[7].text.isNotEmpty) {
+      String websiteText = controllers[7].text;
+      String url = controllers.length > 8 && controllers[8].text.isNotEmpty
+          ? controllers[8].text
+          : websiteText;
+      // Add http:// prefix if missing
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'http://$url';
+      }
+      parts.add(
+          '{\\field{\\*\\fldinst HYPERLINK "$url"}{\\fldrslt $websiteText}}');
+    }
+
+    // Website 2 (hyperlink)
+    if (controllers.length > 9 && controllers[9].text.isNotEmpty) {
+      String websiteText = controllers[9].text;
+      String url = controllers.length > 10 && controllers[10].text.isNotEmpty
+          ? controllers[10].text
+          : websiteText;
+      // Add http:// prefix if missing
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'http://$url';
+      }
+      parts.add(
+          '{\\field{\\*\\fldinst HYPERLINK "$url"}{\\fldrslt $websiteText}}');
+    }
+
+    // Join with separators
+    buffer.writeln(parts.join(' | '));
+    buffer.writeln('}');
+
+    // Empty line before summary
+    buffer.writeln('\\par\\par');
+
+    // Summary (Arial 11, italic, left-aligned)
+    if (controllers.length > 11 && controllers[11].text.isNotEmpty) {
+      buffer.writeln('{\\pard\\plain\\f0\\fs22\\i');
+      buffer.writeln(controllers[11].text);
+      buffer.writeln('}');
+    }
   }
 }
