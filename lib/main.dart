@@ -40,7 +40,8 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   String _selectedSectionType = 'education';
   late MainSection _mainSection;
-  List<custom_section.CustomSection> _sections = [];
+  Map<String, custom_section.CustomSection> _sections =
+      {}; // Changed from List to Map
   Map<String, GlobalKey<custom_section.CustomSectionState>> _sectionKeys = {};
   Map<String, custom_section.CustomSection> _sectionWidgets =
       {}; // Store widget instances
@@ -172,7 +173,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       await CsvService.saveUserData(userData);
 
       // Generate RTF
-      final rtfString = await RtfService.generateRtf(_sections);
+      final rtfString = await RtfService.generateRtf(_sections.values.toList());
 
       // Reload user data list
       await _loadUserData();
@@ -227,21 +228,22 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       }
 
       // Check custom sections
-      for (int i = 0; i < _sections.length; i++) {
-        final section = _sections[i];
+      int sectionIndex = 0;
+      for (final section in _sections.values) {
         final sectionControllers = section.allControllers;
         print(
-            '=== DEBUG: Section $i (${section.sectionName}): ${sectionControllers.length} controllers ===');
+            '=== DEBUG: Section $sectionIndex (${section.sectionName}): ${sectionControllers.length} controllers ===');
         for (int j = 0; j < sectionControllers.length; j++) {
           print(
-              '=== DEBUG: Section $i Controller $j: "${sectionControllers[j].text}" ===');
+              '=== DEBUG: Section $sectionIndex Controller $j: "${sectionControllers[j].text}" ===');
         }
+        sectionIndex++;
       }
 
       // Extract data using CvDataService
       final cvData = CvDataService.extractAllData(
         controllers,
-        _sections,
+        _sections.values.toList(),
       );
       print('=== DEBUG: Extracted data: $cvData ===');
 
@@ -306,7 +308,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             // Custom Sections Board
             if (_sections.isNotEmpty) ...[
               const SizedBox(height: 16),
-              ..._sections.map((section) => section).toList(),
+              ..._sections.values.toList(),
             ],
 
             // Add Section Group
@@ -366,10 +368,10 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     );
   }
 
-  void _removeSection(int index) {
+  void _removeSectionById(String sectionId) {
     setState(() {
-      if (index >= 0 && index < _sections.length) {
-        final removedSection = _sections.removeAt(index);
+      final removedSection = _sections.remove(sectionId);
+      if (removedSection != null) {
         _sectionKeys.remove(removedSection.sectionName);
       }
     });
@@ -398,18 +400,22 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       (sectionType) => sectionType.name == type,
     );
 
+    final actualSectionId =
+        sectionId ?? DateTime.now().millisecondsSinceEpoch.toString();
+
     final newSection = custom_section.CustomSection(
       key: sectionKey,
       sectionName: name,
       subsectionType: sectionType,
       sectionKey: sectionKey,
-      sectionId: sectionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      sectionId: actualSectionId,
       preloadedSubsections: preloadedSubsections,
+      onRemoveSection: () => _removeSectionById(actualSectionId),
     );
 
-    // Add section to list and trigger rebuild
+    // Add section to map and trigger rebuild
     setState(() {
-      _sections.add(newSection);
+      _sections[actualSectionId] = newSection;
     });
 
     return newSection;
