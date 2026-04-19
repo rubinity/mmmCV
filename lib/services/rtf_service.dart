@@ -160,6 +160,24 @@ class RtfService {
                 customSection.allControllers as List<TextEditingController>;
             print('=== Number of controllers: ${controllers.length} ===');
             _writeExperienceSubsectionRtf(buffer, subsections, controllers);
+          } else if (sectionType.contains('Projects')) {
+            // Get all controllers for projects section
+            final controllers =
+                customSection.allControllers as List<TextEditingController>;
+            print('=== Number of controllers: ${controllers.length} ===');
+            _writeProjectsSubsectionRtf(buffer, subsections, controllers);
+          } else if (sectionType.contains('Simplest')) {
+            // Get all controllers for simplest section
+            final controllers =
+                customSection.allControllers as List<TextEditingController>;
+            print('=== Number of controllers: ${controllers.length} ===');
+            _writeSimplestSubsectionRtf(buffer, subsections, controllers);
+          } else if (sectionType.contains('Language')) {
+            // Get all controllers for language section
+            final controllers =
+                customSection.allControllers as List<TextEditingController>;
+            print('=== Number of controllers: ${controllers.length} ===');
+            _writeLanguageSubsectionRtf(buffer, subsections, controllers);
           }
         }
       }
@@ -296,5 +314,113 @@ class RtfService {
         buffer.writeln('\\par');
       }
     }
+  }
+
+  static void _writeProjectsSubsectionRtf(StringBuffer buffer, List subsections,
+      List<TextEditingController> controllers) {
+    // Projects has 4 fields per subsection
+    // Controllers: [Project Name, Start, End, Description]
+    int fieldsPerSubsection = 4;
+
+    for (int i = 0; i < subsections.length; i++) {
+      int startIndex = i * fieldsPerSubsection;
+
+      String projectName = startIndex + 0 < controllers.length
+          ? controllers[startIndex + 0].text
+          : '';
+      String start = startIndex + 1 < controllers.length
+          ? controllers[startIndex + 1].text
+          : '';
+      String end = startIndex + 2 < controllers.length
+          ? controllers[startIndex + 2].text
+          : '';
+      String description = startIndex + 3 < controllers.length
+          ? controllers[startIndex + 3].text
+          : '';
+
+      // Start with endline
+      buffer.writeln('\\par');
+
+      // First line: Project name, start - end (Arial 11, bold)
+      buffer.writeln('{\\pard\\plain\\f0\\fs22\\b');
+      List<String> parts = [];
+      if (projectName.isNotEmpty) parts.add(projectName);
+      String dateRange = '';
+      if (start.isNotEmpty) {
+        dateRange = start;
+        if (end.isNotEmpty) {
+          dateRange += ' - $end';
+        }
+      }
+      if (dateRange.isNotEmpty) parts.add(dateRange);
+      buffer.writeln(parts.join(', '));
+      buffer.writeln('}');
+
+      // Description (if present) - not bold
+      if (description.isNotEmpty) {
+        buffer.writeln('\\par');
+        buffer.writeln('{\\pard\\plain\\f0\\fs22');
+        buffer.writeln(description);
+        buffer.writeln('}');
+        // One new line after description
+        buffer.writeln('\\par');
+      }
+    }
+  }
+
+  static void _writeSimplestSubsectionRtf(StringBuffer buffer, List subsections,
+      List<TextEditingController> controllers) {
+    // Simplest has 1 field per subsection
+    // Controllers: [Description]
+    int fieldsPerSubsection = 1;
+
+    for (int i = 0; i < subsections.length; i++) {
+      int startIndex = i * fieldsPerSubsection;
+
+      String description = startIndex + 0 < controllers.length
+          ? controllers[startIndex + 0].text
+          : '';
+
+      // Description (Arial 11, not bold, no endline before description)
+      if (description.isNotEmpty) {
+        buffer.write('{\\pard\\plain\\f0\\fs22\\u32?');
+        buffer.write(description);
+        buffer.writeln('}');
+      }
+    }
+  }
+
+  static void _writeLanguageSubsectionRtf(StringBuffer buffer, List subsections,
+      List<TextEditingController> controllers) {
+    // Language has 2 fields per subsection
+    // Controllers: [Language, Level]
+    int fieldsPerSubsection = 2;
+
+    // Start with space
+    buffer.write('{\\pard\\plain\\f0\\fs22\\u32?');
+
+    List<String> languageStrings = [];
+    for (int i = 0; i < subsections.length; i++) {
+      int startIndex = i * fieldsPerSubsection;
+
+      String language = startIndex + 0 < controllers.length
+          ? controllers[startIndex + 0].text
+          : '';
+      String level = startIndex + 1 < controllers.length
+          ? controllers[startIndex + 1].text
+          : '';
+
+      if (language.isNotEmpty) {
+        String langStr = language;
+        if (level.isNotEmpty) {
+          langStr += ' ($level)';
+        }
+        languageStrings.add(langStr);
+      }
+    }
+
+    // Join with commas
+    buffer.write(languageStrings.join(', '));
+    buffer.writeln('}');
   }
 }
