@@ -1,63 +1,40 @@
-# mmmCV - First Step
+# mmmCV - make me my CV
 
-A simple CV generator that creates ODT files from user data stored in CSV format.
+A flexible CV generator that creates RTF files from user data. Fill out the form with your information and generate a professional CV.
 
-## Features (Step 1)
+## Important Notice
 
-- **User Input**: First name, optional middle name, last name, and note
+**This is not a production version.** This project is currently in development and may have bugs, incomplete features, or compatibility issues. It is intended for personal use and testing purposes only. Use at your own risk.
+
+## TODO (This list is not exhaustive and may be updated as the project evolves.)
+
+- [ ] Improve RTF output format (line spacing, margins, etc.)
+- [ ] Improve sections format and field ordering
+- [ ] Add selective entry printing (checkbox control for each entry)
+- [ ] Add sections reordering
+- [ ] Add multiprofile support for managing multiple CV profiles
+- [ ] Add comprehensive testing, especially mobile versions
+- [ ] Verify cross-platform compatibility (Windows, macOS, Linux, Android, iOS)
+
+## Features
+
+- **Personal info**: Name, contact details, summary
+- **Flexible Structure and Naming**: Repurpose section types (Education, Experience, Projects, Languages, Simplest) with custom names to fit your needs
 - **Data Storage**: CSV file for persistent storage
-- **Output**: ODT file compatible with Google Docs and LibreOffice
-- **Format**: Full name in ALL CAPS, empty line, note with capital first letter
-
-## Project Structure
-
-```
-mmmCV/
-├── bin/
-│   └── cv_generator.dart          # Console application
-├── lib/
-│   ├── models/
-│   │   └── user_data.dart          # User data model
-│   └── services/
-│       ├── csv_service.dart        # CSV file operations
-│       └── odt_service.dart        # ODT file generation
-└── pubspec.yaml                    # Dependencies
-```
-
-## How to Run (Console Version)
-
-```bash
-cd mmmCV
-dart bin/cv_generator.dart
-```
+- **Output**: RTF file compatible with Google Docs, LibreOffice and Microsoft Word
+- **Format**: Professional CV layout with proper formatting for each section type
 
 ## Usage
 
-1. **Add user data** - Enter name and note information
-2. **View existing data** - See all stored user records
-3. **Generate CV** - Create ODT file from selected user data
-4. **Exit** - Quit the application
-
-## Output Format
-
-The generated ODT file contains:
-
-```
-FULL NAME IN ALL CAPS
-
-Note with capital first letter
-```
-
-## Next Steps
-
-- [ ] Add Flutter GUI interface
-- [ ] Improve ODT generation with proper ZIP structure
-- [ ] Add more CV fields (email, phone, etc.)
-- [ ] Add multiple CV templates
-- [ ] Add mobile support
+1. Enter your personal information in the main section
+2. Add custom sections as needed (Education, Experience, etc.)
+3. Save your data to CSV
+4. Generate RTF CV file with the "PRINT TO RTF" button
+5. You can use existing section types to create your own sections. For example, the Simplest section type can be used to create a Skills or Interests section. You can also create multiple sections with the same format, for example a Selected Projects and Other Projects section based on the Projects type.
 
 ## Compatibility
 
-- **Google Docs**: Can import and edit the generated ODT files
-- **LibreOffice**: Native support for ODT format
-- **Microsoft Word**: Can open ODT files with good compatibility
+- **LibreOffice**: Native support for RTF format
+- **Microsoft Word**: Full RTF compatibility
+- **Google Docs**: Can import RTF files (may require conversion)
+- **Mobile platforms**: Currently untested

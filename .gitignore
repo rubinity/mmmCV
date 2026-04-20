@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Data and output folders
+data/
+output/
+
+# Old readme
+readmeold.md
