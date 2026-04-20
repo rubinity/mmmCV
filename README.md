@@ -6,6 +6,14 @@ A flexible CV generator that creates RTF files from user data. Fill out the form
 
 **This is not a production version.** This project is currently in development and may have bugs, incomplete features, or compatibility issues. It is intended for personal use and testing purposes only. Use at your own risk.
 
+## Features
+
+- **Personal info**: Name, contact details, summary
+- **Flexible Structure and Naming**: Repurpose section types (Education, Experience, Projects, Languages, Simplest) with custom names to fit your needs
+- **Data Storage**: CSV file for persistent storage
+- **Output**: RTF file compatible with Google Docs, LibreOffice and Microsoft Word
+- **Format**: Professional CV layout with proper formatting for each section type
+
 ## TODO (This list is not exhaustive and may be updated as the project evolves.)
 
 - [ ] Improve RTF output format (line spacing, margins, etc.)
@@ -15,14 +23,6 @@ A flexible CV generator that creates RTF files from user data. Fill out the form
 - [ ] Add multiprofile support for managing multiple CV profiles
 - [ ] Add comprehensive testing, especially mobile versions
 - [ ] Verify cross-platform compatibility (Windows, macOS, Linux, Android, iOS)
-
-## Features
-
-- **Personal info**: Name, contact details, summary
-- **Flexible Structure and Naming**: Repurpose section types (Education, Experience, Projects, Languages, Simplest) with custom names to fit your needs
-- **Data Storage**: CSV file for persistent storage
-- **Output**: RTF file compatible with Google Docs, LibreOffice and Microsoft Word
-- **Format**: Professional CV layout with proper formatting for each section type
 
 ## Usage
 
