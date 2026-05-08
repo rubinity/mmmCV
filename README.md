@@ -38,3 +38,10 @@ A flexible CV generator that creates RTF files from user data. Fill out the form
 - **Microsoft Word**: Full RTF compatibility
 - **Google Docs**: Can import RTF files (may require conversion)
 - **Mobile platforms**: Currently untested
+
+## Use of AI in the project
+This application was developed using vibe coding - a collaborative workflow in which I directed an AI assistant to build the CV generator.
+
+I actively contributed to shaping the overall architecture, including class structure and component responsibilities. I specified implementation requirements and guided implementation through iterative feedback and testing. I decided to adopt the core design principle of structural customization, ensuring the implementation remained consistent with this approach.
+
+AI assistance is also involved in writing project documentation, including the README.
