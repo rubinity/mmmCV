@@ -249,7 +249,7 @@ class CvDataService {
       }
 
       // Parse CSV and convert back to preloaded data structure
-      final rows = const CsvToListConverter().convert(content);
+      final rows = const CsvToListConverter(shouldParseNumbers: false).convert(content);
       if (rows.isEmpty) {
         return PreloadedCvData(
           mainSectionValues: {},

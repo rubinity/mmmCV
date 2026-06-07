@@ -144,56 +144,20 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _saveAndGenerate() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+  Future<void> _printToRtf() async {
     try {
-      // Create user data object
-      // TODO: Extract data from UI elements instead of controllers
-      final userData = UserData(
-        firstName: 'TODO', // Extract from UI
-        middleName: null,
-        lastName: 'TODO', // Extract from UI
-        summary: null,
-        email: null,
-        phone: null,
-        address: null,
-        zipCode: null,
-        city: null,
-        country: null,
-        website1: null,
-        url1: null,
-        website2: null,
-        url2: null,
-      );
+      final sections = <dynamic>[_mainSection, ..._sections.values];
+      final rtfString = await RtfService.generateRtf(sections);
 
-      // Save to CSV
-      await CsvService.saveUserData(userData);
-
-      // Generate RTF
-      final rtfString = await RtfService.generateRtf(_sections.values.toList());
-
-      // Reload user data list
-      await _loadUserData();
-
-      if (mounted) {
-        _showSuccessSnackBar('CV saved successfully!');
+      final outputDir = Directory('${Directory.current.path}/output');
+      if (!await outputDir.exists()) {
+        await outputDir.create(recursive: true);
       }
+      final file = File('${outputDir.path}/cv.rtf');
+      await file.writeAsString(rtfString);
     } catch (e) {
       if (mounted) {
-        _showErrorSnackBar('Error: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        _showErrorSnackBar('Error generating RTF: $e');
       }
     }
   }
@@ -371,31 +335,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             const SizedBox(height: 8),
             // Print to RTF button
             ElevatedButton(
-              onPressed: () async {
-                print('=== Generating RTF ===');
-                try {
-                  // Gather all sections
-                  final sections = <dynamic>[];
-                  sections.add(_mainSection);
-                  for (final section in _sections.values) {
-                    sections.add(section);
-                  }
-                  final rtfString = await RtfService.generateRtf(sections);
-                  print('=== RTF Generated ===');
-
-                  // Save to file
-                  final outputDir =
-                      Directory('${Directory.current.path}/output');
-                  if (!await outputDir.exists()) {
-                    await outputDir.create(recursive: true);
-                  }
-                  final file = File('${outputDir.path}/cv.rtf');
-                  await file.writeAsString(rtfString);
-                  print('=== RTF saved to ${file.path} ===');
-                } catch (e) {
-                  print('=== Error generating RTF: $e ===');
-                }
-              },
+              onPressed: _printToRtf,
               child: const Text('PRINT TO RTF'),
             ),
             const SizedBox(height: 16),
