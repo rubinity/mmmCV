@@ -47,6 +47,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
   Map<String, custom_section.CustomSection> _sections =
       {}; // Changed from List to Map
   Map<String, GlobalKey<custom_section.CustomSectionState>> _sectionKeys = {};
+  List<String> _sectionOrder = []; // Display/save order, by sectionId
   Map<String, custom_section.CustomSection> _sectionWidgets =
       {}; // Store widget instances
   Map<String, List<TextEditingController>> _sectionControllers =
@@ -146,7 +147,10 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
 
   Future<void> _printToRtf() async {
     try {
-      final sections = <dynamic>[_mainSection, ..._sections.values];
+      final sections = <dynamic>[
+        _mainSection,
+        ..._sectionOrder.map((id) => _sections[id]!),
+      ];
       final rtfString = await RtfService.generateRtf(sections);
 
       final outputDir = Directory('${Directory.current.path}/output');
@@ -266,7 +270,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             // Custom Sections Board
             if (_sections.isNotEmpty) ...[
               const SizedBox(height: 16),
-              ..._sections.values.toList(),
+              ..._sectionOrder.map((id) => _sections[id]!).toList(),
             ],
 
             // Add Section Group
@@ -351,10 +355,46 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       if (removedSection != null) {
         _sectionKeys.remove(removedSection.sectionName);
       }
+      _sectionOrder.remove(sectionId);
     });
+    _refreshSectionBoundaryFlags();
 
     // Auto-save after removing section
     _autoSaveData();
+  }
+
+  void _moveSectionUp(String sectionId) {
+    setState(() {
+      final index = _sectionOrder.indexOf(sectionId);
+      if (index > 0) {
+        final temp = _sectionOrder[index - 1];
+        _sectionOrder[index - 1] = _sectionOrder[index];
+        _sectionOrder[index] = temp;
+      }
+    });
+    _refreshSectionBoundaryFlags();
+  }
+
+  void _moveSectionDown(String sectionId) {
+    setState(() {
+      final index = _sectionOrder.indexOf(sectionId);
+      if (index != -1 && index < _sectionOrder.length - 1) {
+        final temp = _sectionOrder[index + 1];
+        _sectionOrder[index + 1] = _sectionOrder[index];
+        _sectionOrder[index] = temp;
+      }
+    });
+    _refreshSectionBoundaryFlags();
+  }
+
+  // Sections are cached widget instances reused across parent rebuilds, so
+  // changing _sectionOrder alone won't re-run their build() (Flutter skips
+  // updating a child when the same widget instance is passed again). Forcing
+  // each section's own setState makes it re-evaluate isFirstSection/isLastSection.
+  void _refreshSectionBoundaryFlags() {
+    for (final section in _sections.values) {
+      section.sectionKey?.currentState?.setState(() {});
+    }
   }
 
   // Helper function to extract section name from type and custom name
@@ -409,6 +449,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             sectionId: actualSectionId,
             preloadedSubsections: preloadedSubsections,
             onRemoveSection: () => _removeSectionById(actualSectionId),
+            onMoveSectionUp: () => _moveSectionUp(actualSectionId),
+            onMoveSectionDown: () => _moveSectionDown(actualSectionId),
+            isFirstSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.first == actualSectionId,
+            isLastSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.last == actualSectionId,
           );
           break;
         case SectionType.experience:
@@ -419,6 +465,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             sectionId: actualSectionId,
             preloadedSubsections: preloadedSubsections,
             onRemoveSection: () => _removeSectionById(actualSectionId),
+            onMoveSectionUp: () => _moveSectionUp(actualSectionId),
+            onMoveSectionDown: () => _moveSectionDown(actualSectionId),
+            isFirstSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.first == actualSectionId,
+            isLastSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.last == actualSectionId,
           );
           break;
         case SectionType.projects:
@@ -429,6 +481,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             sectionId: actualSectionId,
             preloadedSubsections: preloadedSubsections,
             onRemoveSection: () => _removeSectionById(actualSectionId),
+            onMoveSectionUp: () => _moveSectionUp(actualSectionId),
+            onMoveSectionDown: () => _moveSectionDown(actualSectionId),
+            isFirstSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.first == actualSectionId,
+            isLastSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.last == actualSectionId,
           );
           break;
         case SectionType.simplest:
@@ -439,6 +497,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             sectionId: actualSectionId,
             preloadedSubsections: preloadedSubsections,
             onRemoveSection: () => _removeSectionById(actualSectionId),
+            onMoveSectionUp: () => _moveSectionUp(actualSectionId),
+            onMoveSectionDown: () => _moveSectionDown(actualSectionId),
+            isFirstSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.first == actualSectionId,
+            isLastSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.last == actualSectionId,
           );
           break;
         case SectionType.languages:
@@ -449,6 +513,12 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
             sectionId: actualSectionId,
             preloadedSubsections: preloadedSubsections,
             onRemoveSection: () => _removeSectionById(actualSectionId),
+            onMoveSectionUp: () => _moveSectionUp(actualSectionId),
+            onMoveSectionDown: () => _moveSectionDown(actualSectionId),
+            isFirstSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.first == actualSectionId,
+            isLastSection: () =>
+                _sectionOrder.isNotEmpty && _sectionOrder.last == actualSectionId,
           );
           break;
       }
@@ -457,6 +527,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       // Add section to map and trigger rebuild
       setState(() {
         _sections[actualSectionId] = newSection;
+        _sectionOrder.add(actualSectionId);
       });
       // print('=== DEBUG: Section added to map successfully ===');
 
