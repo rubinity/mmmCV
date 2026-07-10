@@ -87,6 +87,10 @@ abstract class CustomSection extends StatefulWidget {
   final String sectionName;
   final SectionType subsectionType;
   final VoidCallback? onRemoveSection;
+  final VoidCallback? onMoveSectionUp;
+  final VoidCallback? onMoveSectionDown;
+  final bool Function()? isFirstSection;
+  final bool Function()? isLastSection;
   final GlobalKey<CustomSectionState>? sectionKey;
   late final String sectionId; // Add unique section ID
   final List<SubsectionData>? preloadedSubsections; // Preloaded subsections
@@ -100,6 +104,10 @@ abstract class CustomSection extends StatefulWidget {
     required this.sectionName,
     required this.subsectionType,
     this.onRemoveSection,
+    this.onMoveSectionUp,
+    this.onMoveSectionDown,
+    this.isFirstSection,
+    this.isLastSection,
     this.sectionKey,
     String? sectionId, // Optional sectionId parameter
     this.preloadedSubsections, // Optional preloaded subsections
@@ -243,7 +251,7 @@ abstract class CustomSectionState extends State<CustomSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section title and remove button in same line
+            // Section title, move arrows and remove button in same line
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -252,11 +260,37 @@ abstract class CustomSectionState extends State<CustomSection> {
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                if (widget.onRemoveSection != null)
-                  ElevatedButton(
-                    onPressed: widget.onRemoveSection,
-                    child: const Text('Remove Section'),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.onMoveSectionUp != null)
+                      if (widget.isFirstSection?.call() ?? false)
+                        const SizedBox(width: 32)
+                      else
+                        IconButton(
+                          icon: const Icon(Icons.keyboard_arrow_up, size: 16),
+                          onPressed: widget.onMoveSectionUp,
+                          constraints: const BoxConstraints(
+                              minWidth: 32, minHeight: 32),
+                        ),
+                    if (widget.onMoveSectionDown != null)
+                      if (widget.isLastSection?.call() ?? false)
+                        const SizedBox(width: 32)
+                      else
+                        IconButton(
+                          icon:
+                              const Icon(Icons.keyboard_arrow_down, size: 16),
+                          onPressed: widget.onMoveSectionDown,
+                          constraints: const BoxConstraints(
+                              minWidth: 32, minHeight: 32),
+                        ),
+                    if (widget.onRemoveSection != null)
+                      ElevatedButton(
+                        onPressed: widget.onRemoveSection,
+                        child: const Text('Remove Section'),
+                      ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 16),
