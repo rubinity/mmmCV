@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+/// Builds RTF HYPERLINK markup for [text]. When [url] is empty and
+/// [fallbackToTextAsUrl] is false (the default), returns [text] unchanged
+/// with no hyperlink markup — used where the display text isn't URL-like
+/// (e.g. a project name). When [fallbackToTextAsUrl] is true, falls back to
+/// using [text] itself as the URL — used where the display text usually IS
+/// URL-like (e.g. a website name like "github").
+String buildHyperlinkField(String text, String url,
+    {bool fallbackToTextAsUrl = false}) {
+  if (url.isEmpty && !fallbackToTextAsUrl) {
+    return text;
+  }
+  final resolvedUrl = url.isNotEmpty ? url : text;
+  final fullUrl = resolvedUrl.startsWith('http://') ||
+          resolvedUrl.startsWith('https://')
+      ? resolvedUrl
+      : 'http://$resolvedUrl';
+  return '{\\field{\\*\\fldinst HYPERLINK "$fullUrl"}{\\fldrslt $text}}';
+}
+
 abstract class RtfSectionWriter {
   const RtfSectionWriter();
   void writeRtf(StringBuffer buffer, List<TextEditingController> controllers);

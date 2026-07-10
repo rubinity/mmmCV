@@ -72,13 +72,15 @@ class RtfService {
 
     // Website 1
     if (controllers.length > 7 && controllers[7].text.isNotEmpty) {
-      parts.add(_hyperlink(controllers[7].text,
-          controllers.length > 8 ? controllers[8].text : ''));
+      parts.add(buildHyperlinkField(controllers[7].text,
+          controllers.length > 8 ? controllers[8].text : '',
+          fallbackToTextAsUrl: true));
     }
     // Website 2
     if (controllers.length > 9 && controllers[9].text.isNotEmpty) {
-      parts.add(_hyperlink(controllers[9].text,
-          controllers.length > 10 ? controllers[10].text : ''));
+      parts.add(buildHyperlinkField(controllers[9].text,
+          controllers.length > 10 ? controllers[10].text : '',
+          fallbackToTextAsUrl: true));
     }
 
     buffer.writeln(parts.join(' | '));
@@ -92,16 +94,6 @@ class RtfService {
       buffer.writeln(controllers[11].text);
       buffer.writeln('}\\par\\par');
     }
-  }
-
-  static String _hyperlink(String text, String url) {
-    final resolvedUrl =
-        url.isNotEmpty ? url : text;
-    final fullUrl = resolvedUrl.startsWith('http://') ||
-            resolvedUrl.startsWith('https://')
-        ? resolvedUrl
-        : 'http://$resolvedUrl';
-    return '{\\field{\\*\\fldinst HYPERLINK "$fullUrl"}{\\fldrslt $text}}';
   }
 
   static void _writeCustomSectionRtf(StringBuffer buffer, dynamic customSection) {
