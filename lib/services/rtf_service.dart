@@ -105,14 +105,14 @@ class RtfService {
   }
 
   static void _writeCustomSectionRtf(StringBuffer buffer, dynamic customSection) {
+    final controllers = customSection.getControllers(printedOnly: true)
+        as List<TextEditingController>;
+    if (controllers.isEmpty) return;
+
     buffer.writeln('{\\pard\\plain\\f0\\fs22\\scaps\\b');
     buffer.writeln(customSection.sectionName.toUpperCase());
     buffer.writeln('}');
 
-    final controllers =
-        customSection.allControllers as List<TextEditingController>;
-    if (controllers.isNotEmpty) {
-      _writers[customSection.subsectionType]?.writeRtf(buffer, controllers);
-    }
+    _writers[customSection.subsectionType]?.writeRtf(buffer, controllers);
   }
 }

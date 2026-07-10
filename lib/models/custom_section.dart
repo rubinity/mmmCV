@@ -61,6 +61,28 @@ class Subsection {
   }
 }
 
+// Pure data-manipulation helper: collects controllers across a map of
+// subsections, optionally excluding those whose printed flag is false.
+// Kept as a standalone function so it can be unit-tested without needing
+// a rendered widget tree.
+List<TextEditingController> collectControllers(
+  Map<int, Subsection> subsections, {
+  bool printedOnly = false,
+}) {
+  final controllers = <TextEditingController>[];
+  for (final subsection in subsections.values) {
+    if (printedOnly && !subsection.printed) continue;
+    for (final fieldGroup in subsection.fieldGroups) {
+      for (final field in fieldGroup.fields) {
+        if (field.controller != null) {
+          controllers.add(field.controller!);
+        }
+      }
+    }
+  }
+  return controllers;
+}
+
 abstract class CustomSection extends StatefulWidget {
   final String sectionName;
   final SectionType subsectionType;
@@ -89,20 +111,12 @@ abstract class CustomSection extends StatefulWidget {
   }
 
   // Expose controllers from state via sectionKey
-  List<TextEditingController> get allControllers {
+  List<TextEditingController> getControllers({bool printedOnly = false}) {
     final currentState = sectionKey?.currentState;
-    // print(
-    //     '=== DEBUG: Widget $widgetId: State accessible: ${currentState != null} ===');
-
     if (currentState == null) {
-      print('=== DEBUG: Widget $widgetId: State not accessible ===');
       return [];
     }
-
-    final controllers = currentState.allControllers;
-    // print(
-    //     '=== DEBUG: Widget $widgetId: Returning ${controllers.length} controllers ===');
-    return controllers;
+    return currentState.getControllers(printedOnly: printedOnly);
   }
 }
 
@@ -163,28 +177,17 @@ abstract class CustomSectionState extends State<CustomSection> {
     //     '=== DEBUG: Total controllers in state: ${subsections.values.map((subsection) => subsection.allControllers).fold(0, (a, b) => a + b.length)} ===');
   }
 
-  // Expose controllers from subsections
-  List<TextEditingController> get allControllers {
+  // Expose controllers from subsections; printedOnly excludes subsections
+  // whose printed flag is false (used by RTF generation).
+  List<TextEditingController> getControllers({bool printedOnly = false}) {
     if (!_isInitialized) {
-      print(
-          '=== DEBUG: State not initialized yet, returning 0 controllers ===');
       return [];
     }
-
-    final controllers = <TextEditingController>[];
-    for (final subsection in subsections.values) {
-      for (final fieldGroup in subsection.fieldGroups) {
-        for (final field in fieldGroup.fields) {
-          if (field.controller != null) {
-            controllers.add(field.controller!);
-          }
-        }
-      }
-    }
-    // print(
-    //     '=== DEBUG: Extracted ${controllers.length} controllers from subsections ===');
-    return controllers;
+    return collectControllers(subsections, printedOnly: printedOnly);
   }
+
+  List<bool> get printedFlags =>
+      subsections.values.map((subsection) => subsection.printed).toList();
 
   Subsection createDefaultSubsection();
 
