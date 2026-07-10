@@ -6,6 +6,7 @@ import '../services/cv_data_service.dart' show SubsectionData;
 class Subsection {
   final String name;
   final List<FieldGroup> fieldGroups;
+  bool printed = true;
 
   Subsection({
     required this.name,
