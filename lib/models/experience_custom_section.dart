@@ -12,6 +12,10 @@ class ExperienceCustomSection extends CustomSection {
     String? sectionId,
     List<SubsectionData>? preloadedSubsections,
     VoidCallback? onRemoveSection,
+    VoidCallback? onMoveSectionUp,
+    VoidCallback? onMoveSectionDown,
+    bool Function()? isFirstSection,
+    bool Function()? isLastSection,
   }) : super(
           sectionName: sectionName,
           subsectionType: SectionType.experience,
@@ -19,6 +23,10 @@ class ExperienceCustomSection extends CustomSection {
           sectionId: sectionId,
           preloadedSubsections: preloadedSubsections,
           onRemoveSection: onRemoveSection,
+          onMoveSectionUp: onMoveSectionUp,
+          onMoveSectionDown: onMoveSectionDown,
+          isFirstSection: isFirstSection,
+          isLastSection: isLastSection,
         );
 
   @override
