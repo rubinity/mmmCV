@@ -294,6 +294,17 @@ abstract class CustomSectionState extends State<CustomSection> {
                           )
                         else
                           const SizedBox(width: 32), // Spacer for last entry
+                        Tooltip(
+                          message: 'Include this entry when printing',
+                          child: Checkbox(
+                            value: entry.value.printed,
+                            onChanged: (checked) {
+                              setState(() {
+                                entry.value.printed = checked ?? true;
+                              });
+                            },
+                          ),
+                        ),
                         if (subsections.length > 1)
                           IconButton(
                             icon: const Icon(Icons.delete, size: 16),
