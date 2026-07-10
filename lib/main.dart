@@ -215,7 +215,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
       // Extract data using CvDataService
       final cvData = CvDataService.extractAllData(
         controllers,
-        _sections.values.toList(),
+        _sectionOrder.map((id) => _sections[id]!).toList(),
       );
       // print('=== DEBUG: Extracted data: $cvData ===');
 
@@ -529,6 +529,7 @@ class _CvFormPageState extends State<CvFormPage> with WidgetsBindingObserver {
         _sections[actualSectionId] = newSection;
         _sectionOrder.add(actualSectionId);
       });
+      _refreshSectionBoundaryFlags();
       // print('=== DEBUG: Section added to map successfully ===');
 
       return newSection;
