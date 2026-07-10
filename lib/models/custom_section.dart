@@ -145,8 +145,8 @@ abstract class CustomSectionState extends State<CustomSection> {
       //     '=== DEBUG: Creating ${widget.preloadedSubsections!.length} subsections from preloaded data ===');
       for (int i = 0; i < widget.preloadedSubsections!.length; i++) {
         final subsectionData = widget.preloadedSubsections![i];
-        subsections[i] = createSubsectionFromData(subsectionData, i);
-        // print('=== DEBUG: Created subsection: ${subsections[i]?.name} ===');
+        subsections[i] = createSubsectionFromData(subsectionData, i)
+          ..printed = subsectionData.printed;
       }
     } else {
       // Create initial subsection based on type
