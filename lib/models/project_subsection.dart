@@ -11,14 +11,14 @@ class ProjectSubsection extends custom_section.Subsection {
               title: 'Project Details',
               fields: [
                 FieldDefinition(
-                  label: 'Project Name',
+                  label: 'Affiliation',
                   type: FieldType.text,
-                  width: 300,
+                  width: 200,
                   controller: restoredValues != null &&
                           restoredValues.isNotEmpty
                       ? TextEditingController.fromValue(
                           TextEditingValue(text: restoredValues[0]))
-                      : TextEditingController(),
+                      : TextEditingController(), // Each field has its own controller
                 ),
                 FieldDefinition(
                   label: 'Start',
@@ -43,6 +43,31 @@ class ProjectSubsection extends custom_section.Subsection {
               ],
             ),
             FieldGroup(
+              title: 'Name & URL',
+              fields: [
+                FieldDefinition(
+                  label: 'Name',
+                  type: FieldType.text,
+                  width: 300,
+                  controller: restoredValues != null &&
+                          restoredValues.length > 3
+                      ? TextEditingController.fromValue(
+                          TextEditingValue(text: restoredValues[3]))
+                      : TextEditingController(),
+                ),
+                FieldDefinition(
+                  label: 'URL',
+                  type: FieldType.url,
+                  width: 250,
+                  controller: restoredValues != null &&
+                          restoredValues.length > 4
+                      ? TextEditingController.fromValue(
+                          TextEditingValue(text: restoredValues[4]))
+                      : TextEditingController(),
+                ),
+              ],
+            ),
+            FieldGroup(
               title: 'Description',
               fields: [
                 FieldDefinition(
@@ -50,9 +75,9 @@ class ProjectSubsection extends custom_section.Subsection {
                   type: FieldType.multiline,
                   width: 600,
                   controller: restoredValues != null &&
-                          restoredValues.length > 3
+                          restoredValues.length > 5
                       ? TextEditingController.fromValue(
-                          TextEditingValue(text: restoredValues[3]))
+                          TextEditingValue(text: restoredValues[5]))
                       : TextEditingController(),
                 ),
               ],
