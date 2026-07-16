@@ -118,21 +118,28 @@ class ProjectsWriter extends RtfSectionWriter {
 
   @override
   void writeRtf(StringBuffer buffer, List<TextEditingController> controllers) {
-    // 4 fields per entry: Project Name, Start, End, Description
-    const fieldsPerEntry = 4;
+    // 6 fields per entry: Affiliation, Start, End, Name, URL, Description
+    const fieldsPerEntry = 6;
     final totalEntries = controllers.length ~/ fieldsPerEntry;
 
     for (int i = 0; i < totalEntries; i++) {
       if (i == 0) buffer.writeln('\\par');
       final s = i * fieldsPerEntry;
-      final projectName = controllers[s].text;
+      final affiliation = controllers[s].text;
       final start = controllers[s + 1].text;
       final end = controllers[s + 2].text;
-      final description = controllers[s + 3].text;
+      final name = controllers[s + 3].text;
+      final url = controllers[s + 4].text;
+      final description = controllers[s + 5].text;
+
+      final headingParts = <String>[];
+      if (affiliation.isNotEmpty) headingParts.add(affiliation);
+      if (name.isNotEmpty) headingParts.add(buildHyperlinkField(name, url));
+      final heading = headingParts.join(' - ');
 
       buffer.writeln('{\\pard\\plain\\f0\\fs22\\b');
       final parts = <String>[];
-      if (projectName.isNotEmpty) parts.add(projectName);
+      if (heading.isNotEmpty) parts.add(heading);
       if (start.isNotEmpty) parts.add(end.isNotEmpty ? '$start - $end' : start);
       buffer.writeln(parts.join(', '));
       buffer.writeln('}');
